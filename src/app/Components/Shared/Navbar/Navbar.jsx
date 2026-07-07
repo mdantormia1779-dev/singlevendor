@@ -15,7 +15,7 @@ const Navbar = () => {
     <header className="w-full shadow-sm">
       {/* Top Navbar */}
       <div className="bg-white">
-        <div className="max-w-7xl mx-auto h-[92px] px-6 flex items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto h-23 px-6 flex items-center justify-between gap-6">
           {/* Logo */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="w-11 h-11 rounded-xl bg-[#19b77a] flex items-center justify-center">
