@@ -78,7 +78,7 @@ const Navbar = () => {
 
       {/* Bottom Navbar */}
       <div className="bg-[#19b77a]">
-        <div className="max-w-7xl mx-auto h-[70px] px-6 flex items-center gap-12 text-white font-medium text-lg">
+        <div className="max-w-7xl mx-auto h-17.5 px-6 flex items-center gap-12 text-white font-medium text-lg">
           <button className="flex items-center gap-1">
             Home <ChevronDown size={18} />
           </button>
@@ -92,7 +92,7 @@ const Navbar = () => {
           </button>
 
           <button className="flex items-center gap-1">
-            Men's Shoes <ChevronDown size={18} />
+            Mens Shoes <ChevronDown size={18} />
           </button>
 
           <button className="flex items-center gap-1">
