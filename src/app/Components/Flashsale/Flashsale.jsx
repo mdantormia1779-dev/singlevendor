@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Flame, Clock3 } from "lucide-react";
 import Card from "../Shared/Card/Card";
+import { motion } from "framer-motion";
 
 const products = [
   {
@@ -237,63 +238,46 @@ const products = [
 ];
 
 const Flashsale = () => {
-  const [time, setTime] = useState({
-    hours: 12,
-    minutes: 34,
-    seconds: 53,
-  });
+  const [time, setTime] = useState({ hours: 12, minutes: 34, seconds: 53 });
 
+  // টাইমার লজিক
   useEffect(() => {
     const timer = setInterval(() => {
       setTime((prev) => {
-        let h = prev.hours;
-        let m = prev.minutes;
-        let s = prev.seconds;
-
-        if (s > 0) {
-          s--;
-        } else {
+        let { hours: h, minutes: m, seconds: s } = prev;
+        if (s > 0) s--;
+        else {
           s = 59;
-          if (m > 0) {
-            m--;
-          } else {
+          if (m > 0) m--;
+          else {
             m = 59;
             if (h > 0) h--;
           }
         }
-
-        return {
-          hours: h,
-          minutes: m,
-          seconds: s,
-        };
+        return { hours: h, minutes: m, seconds: s };
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
   return (
     <section className="py-16">
-      <div className="max-w-7xl mx-auto bg-[#FFF5F4] rounded-3xl p-8">
-        {/* Header */}
+      <div className="max-w-7xl mx-auto bg-[#FFF5F4] rounded-3xl p-8 overflow-hidden">
+        {/* Header Section */}
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
               <Flame className="text-red-500" />
             </div>
-
             <div>
               <h2 className="text-4xl font-bold">Flash sale 🔥</h2>
-
               <p className="text-gray-500">Buy before time runs out!</p>
             </div>
           </div>
 
-          {/* Timer */}
+          {/* Timer Section */}
           <div className="flex items-center gap-3">
             <Clock3 className="text-red-500" />
-
             {[
               { value: time.hours, label: "Hours" },
               { value: time.minutes, label: "Mins" },
@@ -306,18 +290,31 @@ const Flashsale = () => {
                 <h3 className="text-3xl font-bold">
                   {String(item.value).padStart(2, "0")}
                 </h3>
-
                 <p className="text-xs">{item.label}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Products */}
-        <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-2">
-          {products.map((product) => (
-            <Card key={product.id} product={product} />
-          ))}
+        {/* Animated Products Section */}
+        <div className="overflow-hidden">
+          <motion.div
+            className="flex gap-6"
+            // শুরুতে X = 0, মাঝখানে X = -50% (পুরো কন্টেন্টের অর্ধেক)
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{
+              duration: 20,
+              ease: "linear",
+              repeat: Infinity,
+            }}
+          >
+            {/* এখানে কন্টেন্ট দ্বিগুণ করার বদলে তিনগুণ করুন যদি লুপে গ্যাপ মনে হয় */}
+            {[...products, ...products, ...products].map((product, index) => (
+              <div key={index} className="flex-shrink-0 w-80">
+                <Card product={product} />
+              </div>
+            ))}
+          </motion.div>
         </div>
       </div>
     </section>
