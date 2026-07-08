@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Heart, ShoppingCart, ArrowRight, Star } from "lucide-react";
 import { CardContent } from "@/components/ui/card";
 import Card from "../Shared/Card/Card";
+import Link from "next/link";
 
 const products = [
   {
@@ -250,9 +251,11 @@ const FeaturedProducts = () => {
               Items specially selected for you
             </p>
           </div>
-          <button className="flex items-center gap-2 px-6 py-2.5 border border-gray-900 rounded-full font-semibold hover:bg-gray-100 transition-all">
-            View All <ArrowRight size={18} />
-          </button>
+          <Link href="/Pages/AllProduct">
+            <button className="flex items-center gap-2 px-6 py-2.5 border border-gray-900 rounded-full font-semibold hover:bg-gray-100 transition-all">
+              View All <ArrowRight size={18} />
+            </button>
+          </Link>
         </div>
 
         {/* Products Grid */}
