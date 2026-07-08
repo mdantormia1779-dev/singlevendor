@@ -17,7 +17,6 @@ const NavMenu = () => {
     { name: "Shopping Cards", path: "/Pages/ShopingCards" },
     { name: "Confirm", path: "/Pages/OrderConfirm" },
     { name: "Success", path: "/Pages/OrderSuccess" },
-    { name: "Tracking", path: "/Pages/OrderTracking" },
   ];
 
   return (

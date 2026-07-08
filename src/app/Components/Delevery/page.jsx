@@ -76,7 +76,12 @@ const DeleveryPage = () => {
 
               {/* bKash */}
               <div
-                className={`border-2 p-4 rounded-md transition-all ${paymentMethod === "bkash" ? "border-green-500 bg-green-50" : "border-gray-200"}`}
+                onClick={() => setPaymentMethod("bkash")} // এখানে ক্লিক হ্যান্ডলার যোগ করা হয়েছে
+                className={`border-2 p-4 rounded-md transition-all cursor-pointer ${
+                  paymentMethod === "bkash"
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-200"
+                }`}
               >
                 <div className="flex items-center space-x-3 mb-3">
                   <RadioGroupItem value="bkash" id="bkash" />
@@ -90,6 +95,7 @@ const DeleveryPage = () => {
                     <span className="font-bold">বিকাশ পেমেন্ট</span>
                   </Label>
                 </div>
+                {/* ইনপুট ফিল্ড */}
                 {paymentMethod === "bkash" && (
                   <div className="space-y-3 pl-8">
                     <p className="text-xs text-gray-600">
@@ -103,7 +109,12 @@ const DeleveryPage = () => {
 
               {/* Nagad */}
               <div
-                className={`border-2 p-4 rounded-md transition-all ${paymentMethod === "nagad" ? "border-green-500 bg-green-50" : "border-gray-200"}`}
+                onClick={() => setPaymentMethod("nagad")} // এখানে ক্লিক হ্যান্ডলার যোগ করা হয়েছে
+                className={`border-2 p-4 rounded-md transition-all cursor-pointer ${
+                  paymentMethod === "nagad"
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-200"
+                }`}
               >
                 <div className="flex items-center space-x-3 mb-3">
                   <RadioGroupItem value="nagad" id="nagad" />
@@ -117,6 +128,7 @@ const DeleveryPage = () => {
                     <span className="font-bold">Nagad payment</span>
                   </Label>
                 </div>
+                {/* ইনপুট ফিল্ড */}
                 {paymentMethod === "nagad" && (
                   <div className="space-y-3 pl-8">
                     <p className="text-xs text-gray-600">

@@ -12,6 +12,7 @@ import {
 import NavMenu from "./NavMenu/NavMenu";
 import Image from "next/image";
 import logo from "../../../../../public/logo.png"
+import Link from "next/link";
 
 const Navbar = () => {
   return (
@@ -46,10 +47,10 @@ const Navbar = () => {
 
           {/* Right */}
           <div className="flex items-center gap-4 shrink-0">
-            <button className="bg-[#1b2236] text-white h-12 px-6 rounded-xl flex items-center gap-2 font-semibold">
+            <Link href={"/Pages/OrderTracking"} className="bg-[#1b2236] text-white h-12 px-6 rounded-xl flex items-center gap-2 font-semibold">
               <Truck size={20} />
               Track Order
-            </button>
+            </Link>
 
             {/* Wishlist */}
             <div className="relative">
