@@ -8,6 +8,7 @@ import {
   Package,
   CheckCheck,
 } from "lucide-react";
+import Link from "next/link";
 
 const OrderSucess = () => {
   return (
@@ -56,15 +57,15 @@ const OrderSucess = () => {
           </div>
 
           {/* Buttons */}
-          <button className="w-full h-14 rounded-xl bg-[#10B981] hover:bg-[#059669] text-white font-semibold flex items-center justify-center gap-2 mt-7 transition">
+          <Link href={"/Pages/OrderTracking"} className="w-full h-14 rounded-xl bg-[#10B981] hover:bg-[#059669] text-white font-semibold flex items-center justify-center gap-2 mt-7 transition">
             <Truck size={20} />
             Track Your Order
-          </button>
+          </Link>
 
-          <button className="w-full h-14 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold flex items-center justify-center gap-2 mt-4 transition">
+          <Link href={"/"} className="w-full h-14 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold flex items-center justify-center gap-2 mt-4 transition">
             <Home size={20} />
             Continue Shopping
-          </button>
+          </Link>
 
           <div className="border-t border-gray-200 mt-8 pt-6 text-center">
             <p className="text-gray-500 text-sm">
