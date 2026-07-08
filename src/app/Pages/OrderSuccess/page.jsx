@@ -1,13 +1,8 @@
 "use client";
 
 import React from "react";
-import {
-  CheckCircle2,
-  Truck,
-  Home,
-  Package,
-  CheckCheck,
-} from "lucide-react";
+import { CheckCircle2, Truck, Home, Package, CheckCheck } from "lucide-react";
+import Link from "next/link";
 
 const OrderSucess = () => {
   return (
@@ -55,15 +50,19 @@ const OrderSucess = () => {
           </div>
 
           {/* Buttons */}
-          <button className="w-full h-14 rounded-xl bg-[#10B981] hover:bg-[#059669] text-white font-semibold flex items-center justify-center gap-2 mt-7 transition">
-            <Truck size={20} />
-            Track Your Order
-          </button>
+          <Link href={"/Pages/OrderTracking"}>
+            <button className="w-full h-14 rounded-xl bg-[#10B981] hover:bg-[#059669] text-white font-semibold flex items-center justify-center gap-2 mt-7 transition">
+              <Truck size={20} />
+              Track Your Order
+            </button>
+          </Link>
 
-          <button className="w-full h-14 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold flex items-center justify-center gap-2 mt-4 transition">
-            <Home size={20} />
-            Continue Shopping
-          </button>
+          <Link href={"/Pages/AllProduct"}>
+            <button className="w-full h-14 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold flex items-center justify-center gap-2 mt-4 transition">
+              <Home size={20} />
+              Continue Shopping
+            </button>
+          </Link>
 
           <div className="border-t border-gray-200 mt-8 pt-6 text-center">
             <p className="text-gray-500 text-sm">

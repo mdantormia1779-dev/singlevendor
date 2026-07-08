@@ -76,9 +76,11 @@ const OrderSummery = ({ items = [] }) => {
             </span>
           </div>
 
-          <Button className="w-full bg-emerald-500 hover:bg-emerald-600 h-12 text-white font-semibold rounded-xl">
-            checkout <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <Link href={"/Pages/OrderConfirm"}>
+            <Button className="w-full bg-emerald-500 hover:bg-emerald-600 h-12 text-white font-semibold rounded-xl">
+              checkout <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
 
           <div className="flex justify-center gap-6 mt-4 text-xs text-gray-400">
             <div className="flex items-center gap-1">
