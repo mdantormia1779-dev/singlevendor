@@ -255,7 +255,7 @@ const AllPages = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-5xl font-bold tracking-tight text-slate-900">
               All Products
             </h1>
             <p className="text-sm text-slate-500 mt-1">12 products found</p>
