@@ -1,9 +1,10 @@
+import OrderTrackingPage from '@/app/Pages/OrderTracking/page';
 import React from 'react';
 
 const TrackOrder = () => {
     return (
         <div>
-            TrackOrder
+            track order page
         </div>
     );
 };
