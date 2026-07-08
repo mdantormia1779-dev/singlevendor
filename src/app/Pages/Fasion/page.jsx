@@ -2,6 +2,7 @@ import React from "react";
 import { ChevronDown } from "lucide-react";
 import Card from "@/app/Components/Shared/Card/Card";
 import SidebarFilter from "@/app/Components/SidebarFilter/SidebarFilter";
+import NoProducts from "../NoProducts/NoProducts";
 
 const AllPages = () => {
   const products = [
@@ -273,10 +274,16 @@ const AllPages = () => {
           <SidebarFilter categories={categories} />
 
           {/* Products Grid */}
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <Card key={product.id} product={product} />
-            ))}
+          <div className="flex-1">
+            {products.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {products.map((product) => (
+                  <Card key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <NoProducts />
+            )}
           </div>
         </div>
       </div>
