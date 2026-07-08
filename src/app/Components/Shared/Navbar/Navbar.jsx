@@ -10,6 +10,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import NavMenu from "./NavMenu/NavMenu";
+import Image from "next/image";
+import logo from "../../../../../public/logo.png"
 
 const Navbar = () => {
   return (
@@ -20,7 +22,9 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="w-11 h-11 rounded-xl bg-[#19b77a] flex items-center justify-center">
-              <span className="text-white text-3xl font-bold">F</span>
+              <div className="bg-emerald-500 p-2 rounded-lg text-white">
+                <Image src={logo} alt="Logo" width={24} height={24} />
+              </div>
             </div>
 
             <h2 className="text-3xl font-bold text-[#111]">Finora</h2>
