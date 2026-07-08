@@ -14,9 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import DeleveryPage from "../Delevery/page";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react"; // লোডিং স্পিনারের জন্য আইকন
+import { Loader2 } from "lucide-react";
 
-// বাংলাদেশ এর সকল ডিভিশন এবং ডিস্ট্রিক্ট ডাটা
 const locationData = {
   Dhaka: ["Dhaka", "Gazipur", "Narayanganj", "Faridpur", "Tangail"],
   Sylhet: ["Sylhet", "Sunamganj", "Habiganj", "Moulvibazar"],
@@ -138,7 +137,7 @@ const ContactPage = () => {
                 <textarea
                   id="address"
                   placeholder="House/Flat Number, Road, Area..."
-                  className="mt-1 w-full p-3 border rounded-md min-h-[80px] focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                  className="mt-1 w-full p-3 border rounded-md min-h-20 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
                   rows={3}
                 />
               </div>

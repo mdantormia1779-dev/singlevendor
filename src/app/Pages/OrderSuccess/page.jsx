@@ -9,7 +9,7 @@ const OrderSucess = () => {
     <section className="min-h-screen bg-[#fafafa] py-14">
       <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
         {/* Main Card */}
-        <div className="w-full max-w-[620px] bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+        <div className="w-full max-w-155 bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
           {/* Success Icon */}
           <div className="flex justify-center">
             <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
