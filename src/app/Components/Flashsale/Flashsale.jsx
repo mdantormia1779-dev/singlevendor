@@ -4,27 +4,29 @@ import React, { useEffect, useState } from "react";
 import { Flame, Clock3 } from "lucide-react";
 import Card from "../Shared/Card/Card";
 
-
 const products = [
   {
     id: 1,
     title: "Premium Winter Jacket - Waterproof and Stylish",
-    image: "/products/jacket.jpg",
+    image:
+      "https://i.ibb.co.com/TxnXgdRg/5df0afe2acf9f2a66088e57fc2503209b37beaea.png",
   },
   {
     id: 2,
     title: "Complete Your Look_ Denim & Sneakers Essentials",
-    image: "/products/denim.jpg",
+    image:
+      "https://i.ibb.co.com/60FwCqVr/f3205722e82695592c3759b56d935eaed785413d.png",
   },
   {
     id: 3,
     title: "Men Office Suit Style 2026 | Business Formal Outfit",
-    image: "/products/suit.jpg",
+    image:
+      "https://i.ibb.co.com/nTFvSVt/6d84311d02f16e5311c381a0244133893fd0a3a2.jpg",
   },
   {
     id: 4,
     title: "Apple AirPods Max Wireless Over-Ear Headphones",
-    image: "/products/airpods.jpg",
+    image: "https://i.ibb.co.com/nTFvSVt/6d84311d02f16e5311c381a0244133893fd0a3a2.jpg",
   },
 ];
 
@@ -68,7 +70,6 @@ const Flashsale = () => {
   return (
     <section className="py-16">
       <div className="max-w-7xl mx-auto bg-[#FFF5F4] rounded-3xl p-8">
-
         {/* Header */}
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-4">
@@ -77,13 +78,9 @@ const Flashsale = () => {
             </div>
 
             <div>
-              <h2 className="text-4xl font-bold">
-                Flash sale 🔥
-              </h2>
+              <h2 className="text-4xl font-bold">Flash sale 🔥</h2>
 
-              <p className="text-gray-500">
-                Buy before time runs out!
-              </p>
+              <p className="text-gray-500">Buy before time runs out!</p>
             </div>
           </div>
 
@@ -104,9 +101,7 @@ const Flashsale = () => {
                   {String(item.value).padStart(2, "0")}
                 </h3>
 
-                <p className="text-xs">
-                  {item.label}
-                </p>
+                <p className="text-xs">{item.label}</p>
               </div>
             ))}
           </div>
@@ -115,10 +110,7 @@ const Flashsale = () => {
         {/* Products */}
         <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-2">
           {products.map((product) => (
-            <Card
-              key={product.id}
-              product={product}
-            />
+            <Card key={product.id} product={product} />
           ))}
         </div>
       </div>
