@@ -4,7 +4,7 @@ import React from 'react';
 const TrackOrder = () => {
     return (
         <div>
-            <OrderTrackingPage></OrderTrackingPage>
+            track order page
         </div>
     );
 };
