@@ -1,11 +1,13 @@
+import ContactPage from '@/app/Components/Contact/page';
+
 import React from 'react';
 
-const OrderConfirm = () => {
+const OrderConfirmPage = () => {
   return (
     <div>
-      order confirm
+      <ContactPage/>
     </div>
   );
 };
 
-export default OrderConfirm;
+export default OrderConfirmPage;
