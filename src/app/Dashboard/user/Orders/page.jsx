@@ -64,9 +64,9 @@ const orders = [
 
 const MyOrders = () => {
   return (
-    <section className="min-h-screen bg-[#F8FAFC] py-10">
+    <section className="min-h-screen bg-[#F8FAFC] ">
       <div className="max-w-7xl mx-auto px-5">
-        <h1 className="text-5xl font-bold text-slate-900 mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 mb-8">
           My Orders
         </h1>
 
