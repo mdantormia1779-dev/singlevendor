@@ -235,3 +235,5 @@ const Deteals = () => {
 };
 
 export default Deteals;
+
+// commiirrtt
