@@ -15,8 +15,8 @@ const NavMenu = () => {
     { name: "Home & Living", path: "/Pages/HomeLiving" },
     { name: "Gadgets", path: "/Pages/Gadgets" },
     { name: "Shopping Cards", path: "/Pages/ShopingCards" },
-    { name: "Confirm", path: "/Pages/OrderConfirm" },
-    { name: "Success", path: "/Pages/OrderSuccess" },
+    // { name: "Confirm", path: "/Pages/OrderConfirm" },
+    // { name: "Success", path: "/Pages/OrderSuccess" },
   ];
 
   return (

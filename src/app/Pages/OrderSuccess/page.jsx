@@ -8,15 +8,13 @@ import {
   Package,
   CheckCheck,
 } from "lucide-react";
-import Link from "next/link";
 
 const OrderSucess = () => {
   return (
     <section className="min-h-screen bg-[#fafafa] py-14">
       <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
         {/* Main Card */}
-        <div className="w-full max-w-[620px] bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-
+        <div className="w-full max-w-155 bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
           {/* Success Icon */}
           <div className="flex justify-center">
             <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
@@ -34,8 +32,8 @@ const OrderSucess = () => {
           </h1>
 
           <p className="text-center text-gray-500 text-lg mt-4 leading-8">
-            Thank you for your order. We've received your order and will
-            start processing it soon.
+            Thank you for your order. We've received your order and will start
+            processing it soon.
           </p>
 
           {/* Order Details */}
@@ -57,15 +55,15 @@ const OrderSucess = () => {
           </div>
 
           {/* Buttons */}
-          <Link href={"/Pages/OrderTracking"} className="w-full h-14 rounded-xl bg-[#10B981] hover:bg-[#059669] text-white font-semibold flex items-center justify-center gap-2 mt-7 transition">
+          <button className="w-full h-14 rounded-xl bg-[#10B981] hover:bg-[#059669] text-white font-semibold flex items-center justify-center gap-2 mt-7 transition">
             <Truck size={20} />
             Track Your Order
-          </Link>
+          </button>
 
-          <Link href={"/"} className="w-full h-14 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold flex items-center justify-center gap-2 mt-4 transition">
+          <button className="w-full h-14 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold flex items-center justify-center gap-2 mt-4 transition">
             <Home size={20} />
             Continue Shopping
-          </Link>
+          </button>
 
           <div className="border-t border-gray-200 mt-8 pt-6 text-center">
             <p className="text-gray-500 text-sm">
@@ -83,31 +81,23 @@ const OrderSucess = () => {
 
         {/* Bottom Status Cards */}
         <div className="grid grid-cols-3 gap-5 mt-8 w-full max-w-[620px]">
-
           <div className="bg-white rounded-2xl border border-gray-200 py-8 px-4 text-center hover:shadow-md transition">
             <Package className="mx-auto text-amber-500" size={34} />
             <h3 className="font-bold text-xl mt-4">Order Confirmed</h3>
-            <p className="text-gray-500 text-sm mt-2">
-              We received your order
-            </p>
+            <p className="text-gray-500 text-sm mt-2">We received your order</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-200 py-8 px-4 text-center hover:shadow-md transition">
             <Truck className="mx-auto text-orange-500" size={34} />
             <h3 className="font-bold text-xl mt-4">Processing</h3>
-            <p className="text-gray-500 text-sm mt-2">
-              Preparing for delivery
-            </p>
+            <p className="text-gray-500 text-sm mt-2">Preparing for delivery</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-200 py-8 px-4 text-center hover:shadow-md transition">
             <CheckCheck className="mx-auto text-green-500" size={34} />
             <h3 className="font-bold text-xl mt-4">Delivered</h3>
-            <p className="text-gray-500 text-sm mt-2">
-              Enjoy your purchase!
-            </p>
+            <p className="text-gray-500 text-sm mt-2">Enjoy your purchase!</p>
           </div>
-
         </div>
       </div>
     </section>
