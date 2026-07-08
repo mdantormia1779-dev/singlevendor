@@ -379,10 +379,13 @@ const DetailsPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <Button
+              asChild
               variant="outline"
               className="h-12 border-green-600 text-green-600 hover:bg-green-50 font-bold"
             >
-              <ShoppingCart className="mr-2" /> Add to cart
+              <Link href="/Pages/ShopingCards">
+                <ShoppingCart className="mr-2 h-5 w-5" /> Add to cart
+              </Link>
             </Button>
             <Button
               asChild
