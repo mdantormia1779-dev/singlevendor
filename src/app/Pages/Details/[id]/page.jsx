@@ -37,13 +37,17 @@ const DetailsPage = () => {
     );
   }
 
-  const currentMainImage = product.images?.[activeImageIndex] || product.images?.[0];
+  const currentMainImage =
+    product.images?.[activeImageIndex] || product.images?.[0];
 
   // ডাইনামিক প্রাইস ক্যালকুলেশন
   const basePrice = Number(product.price || 0);
   const baseOldPrice = Number(product.oldPrice || 0);
   const totalPrice = basePrice * quantity;
   const totalOldPrice = baseOldPrice * quantity;
+
+  console.log("total price: ", totalOldPrice);
+  console.log(product);
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-10 py-10">
@@ -71,7 +75,9 @@ const DetailsPage = () => {
                 key={i}
                 onClick={() => setActiveImageIndex(i)}
                 className={`bg-gray-50 p-1 rounded-lg border cursor-pointer overflow-hidden h-20 flex items-center justify-center relative transition-all ${
-                  activeImageIndex === i ? "border-emerald-500 ring-2 ring-emerald-100" : "hover:border-gray-400"
+                  activeImageIndex === i
+                    ? "border-emerald-500 ring-2 ring-emerald-100"
+                    : "hover:border-gray-400"
                 }`}
               >
                 <Image
@@ -135,7 +141,9 @@ const DetailsPage = () => {
           <div className="border border-emerald-100 bg-emerald-50/30 p-4 rounded-xl space-y-3 text-sm text-gray-600">
             <div className="flex items-center gap-2.5">
               <Truck size={18} className="text-emerald-600" />
-              <span>Delivery in Dhaka: <strong>24-48 hours</strong></span>
+              <span>
+                Delivery in Dhaka: <strong>24-48 hours</strong>
+              </span>
             </div>
             <div className="flex items-center gap-2.5">
               <ShieldCheck size={18} className="text-emerald-600" />
@@ -159,7 +167,9 @@ const DetailsPage = () => {
               >
                 <Minus size={14} />
               </Button>
-              <span className="px-4 font-bold text-sm min-w-[40px] text-center">{quantity}</span>
+              <span className="px-4 font-bold text-sm min-w-[40px] text-center">
+                {quantity}
+              </span>
               <Button
                 variant="ghost"
                 size="icon"
