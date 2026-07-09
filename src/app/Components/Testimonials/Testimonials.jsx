@@ -36,7 +36,7 @@ const reviews = [
 
 export default function Testimonials() {
   return (
-    <section className="py-20 bg-white">
+    <section className="pb-15 bg-white">
       <div className="max-w-7xl mx-auto px-6">
 
         <div className="flex gap-8 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth snap-x snap-mandatory pb-4">

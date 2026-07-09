@@ -1,12 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Truck,
-  Shield,
-  RefreshCcw,
-  ShoppingBag,
-} from "lucide-react";
+import { Truck, Shield, RefreshCcw, ShoppingBag } from "lucide-react";
 
 const features = [
   {
@@ -33,7 +28,7 @@ const features = [
 
 const WhyBuy = () => {
   return (
-    <section className="py-24 bg-white">
+    <section className="pb-15 bg-white">
       <div className="max-w-7xl mx-auto px-6">
         {/* Heading */}
         <div className="text-center mb-14">
@@ -58,11 +53,7 @@ const WhyBuy = () => {
               >
                 {/* Icon */}
                 <div className="w-20 h-20 rounded-3xl bg-[#EAF8F4] flex items-center justify-center mb-8">
-                  <Icon
-                    size={38}
-                    className="text-[#18B779]"
-                    strokeWidth={2}
-                  />
+                  <Icon size={38} className="text-[#18B779]" strokeWidth={2} />
                 </div>
 
                 {/* Title */}
