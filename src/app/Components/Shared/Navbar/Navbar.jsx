@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Search,
-  Heart,
-  ShoppingCart,
-  User,
-  Truck,
-} from "lucide-react";
+import { Search, Heart, ShoppingCart, User, Truck } from "lucide-react";
 import NavMenu from "./NavMenu/NavMenu";
 import Image from "next/image";
 import logo from "../../../../../public/logo.png";
@@ -30,7 +24,7 @@ const Navbar = () => {
         // Scroll Up -> নিচের গ্রিন বার আবার আসবে
         setIsBottomVisible(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -42,7 +36,6 @@ const Navbar = () => {
     <>
       {/* Main Header Container */}
       <header className="fixed top-0 left-0 w-full z-50 bg-white">
-        
         {/* Top Navbar (সবসময় ফিক্সড থাকবে এবং এটার নিচে শ্যাডো থাকবে) */}
         <div className="bg-white relative z-20 shadow-sm">
           <div className="max-w-7xl mx-auto h-23 px-6 flex items-center justify-between gap-6">
@@ -112,9 +105,11 @@ const Navbar = () => {
         </div>
 
         {/* Bottom Navbar (গ্রিন বার - এটি অ্যানিমেশন দিয়ে টপ বারের নিচে চলে যাবে) */}
-        <div 
-          className={`bg-[#19b77a] shadow-md transition-all duration-300 ease-in-out relative z-10 ${
-            isBottomVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none"
+        <div
+          className={`overflow-hidden bg-[#19b77a] shadow-md transition-[max-height,opacity,transform] duration-400 ease-in-out ${
+            isBottomVisible
+              ? "max-h-20 opacity-100 translate-y-0"
+              : "max-h-0 opacity-0 -translate-y-3"
           }`}
         >
           <div className="max-w-7xl mx-auto h-17.5 px-6 flex items-center gap-12 text-white font-medium text-lg">
