@@ -310,7 +310,7 @@ const Flashsale = () => {
           >
             {/* এখানে কন্টেন্ট দ্বিগুণ করার বদলে তিনগুণ করুন যদি লুপে গ্যাপ মনে হয় */}
             {[...products, ...products, ...products].map((product, index) => (
-              <div key={index} className="flex-shrink-0 w-80">
+              <div key={index} className="shrink-0 w-80">
                 <Card product={product} />
               </div>
             ))}
