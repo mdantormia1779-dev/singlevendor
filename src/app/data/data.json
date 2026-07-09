@@ -1,0 +1,498 @@
+[
+  {
+    "id": 1,
+    "title": "Beige White Jeans with Brown Shirt - Casual Men's Outfit",
+    "price": "২,৪৯৯",
+    "oldPrice": "৩,৯৯৯",
+    "rating": "4.8",
+    "reviews": "342",
+    "sold": "1240 sold",
+    "discount": "30% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80",
+      "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=500&q=80",
+      "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=500&q=80",
+      "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500&q=80"
+    ],
+    "description": "Get maximum comfort and style with the Beige White Jeans with Brown Shirt combo. This outfit is crafted from premium quality fabrics, tailored perfectly for contemporary casual wear and everyday styling.",
+    "features": [
+      "Premium quality comfortable fabric",
+      "Trendy and modern casual design",
+      "Durable stitching for long-lasting use",
+      "Easy to wash and maintain color quality"
+    ],
+    "specifications": {
+      "category": "Men's Fashion",
+      "fitType": "Regular/Casual Cool",
+      "material": "Premium Cotton Blend",
+      "rating": "4.8 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Rahat Khan",
+        "text": "The fitting is perfect and the fabric quality feels very premium. Highly recommended!",
+        "rating": 5,
+        "time": "2 days ago"
+      },
+      {
+        "user": "Asif Iqbal",
+        "text": "Great color combination. Looks exactly like the picture.",
+        "rating": 5,
+        "time": "3 days ago"
+      },
+      {
+        "user": "Tanvir Ahmed",
+        "text": "Good product according to the price tag. Happy with the purchase.",
+        "rating": 4,
+        "time": "1 week ago"
+      }
+    ],
+    "questionsList": [
+      "Is the size chart accurate for this outfit?",
+      "Will the fabric color fade after multiple washes?",
+      "Is there a return/exchange policy if it doesn't fit?"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Complete Your Look - Denim & Sneakers Essentials",
+    "price": "২,৪৯৯",
+    "oldPrice": "৩,৯৯৯",
+    "rating": "4.7",
+    "reviews": "128",
+    "sold": "1240 sold",
+    "discount": "30% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80",
+      "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=500&q=80",
+      "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&q=80",
+      "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=500&q=80"
+    ],
+    "description": "Upgrade your street style with our Denim & Sneakers Essentials combo. Perfect for weekend hangouts and smart-casual setups.",
+    "features": [
+      "Heavyweight premium denim",
+      "Soft inner lining for comfort",
+      "Versatile styling options"
+    ],
+    "specifications": {
+      "category": "Men's Clothing",
+      "fitType": "Slim Fit",
+      "material": "100% Cotton Denim",
+      "rating": "4.7 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Sajid Hasan",
+        "text": "Awesome denim quality! Feels rugged yet very comfortable.",
+        "rating": 5,
+        "time": "1 day ago"
+      },
+      {
+        "user": "Naimur R.",
+        "text": "Sneakers fit perfectly, denim is slightly long but quality is top notch.",
+        "rating": 4,
+        "time": "5 days ago"
+      }
+    ],
+    "questionsList": [
+      "Are the sneakers slip-resistant?",
+      "Can I change the sneaker size separately?"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Classic Black Leather Jacket - Vintage Biker Style",
+    "price": "৪,৪৯৯",
+    "oldPrice": "৫,৯৯৯",
+    "rating": "4.9",
+    "reviews": "215",
+    "sold": "850 sold",
+    "discount": "25% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&q=80",
+      "https://images.unsplash.com/photo-1521223890158-f9f7c3d5d504?w=500&q=80"
+    ],
+    "description": "Elevate your winter style with this premium faux leather biker jacket. Designed for durability and a sleek silhouette, it features heavy-duty zippers and a comfortable inner viscose lining.",
+    "features": [
+      "Premium high-grade faux leather",
+      "Windproof and water-resistant exterior",
+      "Smooth inner lining for extra warmth",
+      "Multiple secure pockets"
+    ],
+    "specifications": {
+      "category": "Men's Outerwear",
+      "fitType": "Slim Fit",
+      "material": "Faux Leather / Viscose",
+      "rating": "4.9 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Fahim Anjum",
+        "text": "Absolutely stunning jacket! The leather feels soft and looks expensive.",
+        "rating": 5,
+        "time": "Yesterday"
+      },
+      {
+        "user": "Zayan Malik",
+        "text": "Great fit around the shoulders. Highly recommended for bike riders.",
+        "rating": 5,
+        "time": "4 days ago"
+      }
+    ],
+    "questionsList": [
+      "Is this real leather or synthetic?",
+      "How do I clean this jacket safely?"
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Navy Blue Slim Fit Chinos - Smart Casual Trousers",
+    "price": "১,৭৯৯",
+    "oldPrice": "২,৪৯৯",
+    "rating": "4.6",
+    "reviews": "189",
+    "sold": "940 sold",
+    "discount": "28% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=500&q=80",
+      "https://images.unsplash.com/photo-1479064555552-3ef4979f8908?w=500&q=80"
+    ],
+    "description": "A must-have for every wardrobe, these Navy Blue Chinos bridge the gap between formal and casualwear. Crafted with stretchable cotton for all-day comfort.",
+    "features": [
+      "Stretchable and breathable fabric",
+      "Versatile dark navy shade",
+      "Dual side and back pockets",
+      "Perfect for office or evening hangouts"
+    ],
+    "specifications": {
+      "category": "Men's Clothing",
+      "fitType": "Slim Fit",
+      "material": "98% Cotton, 2% Spandex",
+      "rating": "4.6 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Imran H.",
+        "text": "Very comfortable to wear all day long. The stretch is perfect.",
+        "rating": 5,
+        "time": "1 week ago"
+      }
+    ],
+    "questionsList": [
+      "Does the material shrink after washing?",
+      "Is the waist size true to standard measurements?"
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Minimalist White Leather Sneakers - Urban Streetwear",
+    "price": "২,১৯৯",
+    "oldPrice": "৩,২৯৯",
+    "rating": "4.5",
+    "reviews": "412",
+    "sold": "2100 sold",
+    "discount": "33% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500&q=80",
+      "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&q=80"
+    ],
+    "description": "Clean, crisp, and timeless. These all-white minimalist sneakers match perfectly with jeans, chinos, or shorts for a modern urban look.",
+    "features": [
+      "Cushioned insole for maximum comfort",
+      "Anti-slip durable rubber sole",
+      "Easy-to-clean synthetic upper material",
+      "Lightweight architecture"
+    ],
+    "specifications": {
+      "category": "Footwear",
+      "fitType": "Standard Regular",
+      "material": "Synthetic Leather & Rubber",
+      "rating": "4.5 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Mahdi Hasan",
+        "text": "Great value for money. Looks sleek and goes with literally any outfit.",
+        "rating": 4,
+        "time": "3 days ago"
+      }
+    ],
+    "questionsList": [
+      "Are these shoes waterproof?",
+      "Should I buy one size up?"
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Olive Green Oversized Hoodie - Cozy Street Fashion",
+    "price": "১,৮৯৯",
+    "oldPrice": "২,৭৯৯",
+    "rating": "4.7",
+    "reviews": "95",
+    "sold": "530 sold",
+    "discount": "32% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500&q=80",
+      "https://images.unsplash.com/photo-1511105612320-2e62a04cb078?w=500&q=80"
+    ],
+    "description": "Stay cozy without sacrificing style. This heavy-fleece oversized hoodie offers ultimate relaxed vibes for cooler days.",
+    "features": [
+      "Thick, warm fleece lining",
+      "Drop shoulder relaxed aesthetics",
+      "Spacious kangaroo pocket",
+      "Adjustable drawstring hood"
+    ],
+    "specifications": {
+      "category": "Unisex Winterwear",
+      "fitType": "Oversized Loose Fit",
+      "material": "Premium Terry Cotton Fleece",
+      "rating": "4.7 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Sadia Rahman",
+        "text": "Super soft and wonderfully oversized! Love the earthy green color.",
+        "rating": 5,
+        "time": "5 days ago"
+      }
+    ],
+    "questionsList": [
+      "Is this suitable for heavy winter?",
+      "Is the hoodie unisex?"
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Matte Black Chronograph Watch - Luxury Minimalist Edition",
+    "price": "৩,৪৯৯",
+    "oldPrice": "৪,৯৯৯",
+    "rating": "4.8",
+    "reviews": "76",
+    "sold": "310 sold",
+    "discount": "30% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=500&q=80",
+      "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=500&q=80"
+    ],
+    "description": "A sophisticated timekeeper designed for the modern gentleman. Features a striking matte black dial paired with a durable mesh strap.",
+    "features": [
+      "Scratch-resistant mineral glass",
+      "3ATM daily water resistance",
+      "Functional stopwatch chronograph dials",
+      "Adjustable premium stainless steel mesh band"
+    ],
+    "specifications": {
+      "category": "Accessories",
+      "fitType": "Adjustable Strap",
+      "material": "Stainless Steel Alloy",
+      "rating": "4.8 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Abrar Tazwar",
+        "text": "The stealth black look is outstanding. Keeps time perfectly.",
+        "rating": 5,
+        "time": "2 weeks ago"
+      }
+    ],
+    "questionsList": [
+      "Does it come with a warranty card?",
+      "Can I wear this while swimming?"
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Cuban Collar Linen Shirt - Summer Breeze Collection",
+    "price": "১,৪৫০",
+    "oldPrice": "১,৯৯৯",
+    "rating": "4.4",
+    "reviews": "142",
+    "sold": "890 sold",
+    "discount": "27% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&q=80",
+      "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=500&q=80"
+    ],
+    "description": "Beat the heat with our ultra-breathable linen blend shirt. Featuring a relaxed Cuban resort collar, perfect for beach trips or casual outings.",
+    "features": [
+      "Lightweight, moisture-wicking fabric",
+      "Relaxed retro Cuban collar",
+      "Pre-washed to prevent shrinking",
+      "Eco-friendly natural textures"
+    ],
+    "specifications": {
+      "category": "Men's Clothing",
+      "fitType": "Relaxed Casual Fit",
+      "material": "70% Linen, 30% Cotton",
+      "rating": "4.4 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Rashedul Islam",
+        "text": "Perfect shirt for hot summer days. Extremely breezy and light.",
+        "rating": 4,
+        "time": "4 days ago"
+      }
+    ],
+    "questionsList": [
+      "Does this shirt wrinkle easily?",
+      "What are the care instructions?"
+    ]
+  },
+  {
+    "id": 9,
+    "title": "Anti-Theft Commuter Backpack - Waterproof Smart Bag",
+    "price": "২,৭৯৯",
+    "oldPrice": "৩,৯৯৯",
+    "rating": "4.7",
+    "reviews": "310",
+    "sold": "1450 sold",
+    "discount": "30% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80",
+      "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=500&q=80"
+    ],
+    "description": "Designed for tech-savvy travelers and daily commuters. This smart backpack features hidden zipper access and an integrated external USB charging port.",
+    "features": [
+      "Dedicated padded compartment for 15.6-inch laptop",
+      "Hidden anti-theft back pocket",
+      "Waterproof Oxford fabric",
+      "Ergonomic breathable shoulder straps"
+    ],
+    "specifications": {
+      "category": "Bags & Luggage",
+      "fitType": "Ergonomic 20L Capacity",
+      "material": "Waterproof Oxford & Nylon",
+      "rating": "4.7 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Niaz Ahmed",
+        "text": "Loads of space and very secure. The hidden pocket is super useful.",
+        "rating": 5,
+        "time": "3 days ago"
+      }
+    ],
+    "questionsList": [
+      "Does the backpack include a power bank?",
+      "Is it safe under heavy rain?"
+    ]
+  },
+  {
+    "id": 10,
+    "title": "Premium Polarized Sunglasses - Aviator Style",
+    "price": "১,২৫০",
+    "oldPrice": "১,৭৯৯",
+    "rating": "4.6",
+    "reviews": "98",
+    "sold": "410 sold",
+    "discount": "30% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500&q=80",
+      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500&q=80"
+    ],
+    "description": "Protect your eyes with style. These classic aviators come equipped with HD polarized lenses that eliminate glare while maintaining clear color definition.",
+    "features": [
+      "UV400 protection against UVA/UVB rays",
+      "Lightweight metallic frame",
+      "Comfortable silicone nose pads",
+      "Reduces eye fatigue during driving"
+    ],
+    "specifications": {
+      "category": "Accessories",
+      "fitType": "Universal Fit",
+      "material": "Stainless Steel Frame / TAC Lens",
+      "rating": "4.6 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Tasnim Karim",
+        "text": "The polarization works brilliantly. Reduces sun glare while driving effectively.",
+        "rating": 5,
+        "time": "1 week ago"
+      }
+    ],
+    "questionsList": [
+      "Does it come with a protective case?",
+      "Are the lenses scratch-resistant?"
+    ]
+  },
+  {
+    "id": 11,
+    "title": "Athletic Quick-Dry T-Shirt - Performance Gym Wear",
+    "price": "৭৯৯",
+    "oldPrice": "১,১৯৯",
+    "rating": "4.8",
+    "reviews": "520",
+    "sold": "3200 sold",
+    "discount": "33% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=500&q=80",
+      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&q=80"
+    ],
+    "description": "Engineered for peak performance. This activewear tee utilizes moisture-wicking fabric technology to keep you dry and comfortable during intense workouts.",
+    "features": [
+      "Advanced dry-fit mesh ventilation",
+      "Four-way stretchable flatlock seams",
+      "Odour-resistant fabric treatment",
+      "Reflective accents for low-light safety"
+    ],
+    "specifications": {
+      "category": "Sportswear",
+      "fitType": "Athletic Fit",
+      "material": "100% Polyester Mesh",
+      "rating": "4.8 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Zahidul B.",
+        "text": "Extremely lightweight and sweat dries off within minutes. Perfect for running.",
+        "rating": 5,
+        "time": "2 days ago"
+      }
+    ],
+    "questionsList": [
+      "Is this tight-fitting or loose?",
+      "Does the color bleed during machine wash?"
+    ]
+  },
+  {
+    "id": 12,
+    "title": "Genuine Leather Bi-fold Wallet - Sleek Pocket Organizer",
+    "price": "১,৫৯৯",
+    "oldPrice": "২,১৯৯",
+    "rating": "4.7",
+    "reviews": "115",
+    "sold": "670 sold",
+    "discount": "27% OFF",
+    "images": [
+      "https://images.unsplash.com/photo-1627123424574-724758594e93?w=500&q=80",
+      "https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=500&q=80"
+    ],
+    "description": "Crafted from full-grain leather, this wallet ages beautifully over time. Features a slim design with advanced RFID blocking to protect your cards from wireless theft.",
+    "features": [
+      "100% genuine top-grain leather",
+      "Built-in RFID blocking technology",
+      "6 card slots, 2 cash compartments, 1 ID window",
+      "Slim profile to avoid pocket bulk"
+    ],
+    "specifications": {
+      "category": "Accessories",
+      "fitType": "Slim Pocket Fit",
+      "material": "Full-Grain Leather",
+      "rating": "4.7 / 5.0"
+    },
+    "reviewsList": [
+      {
+        "user": "Tamim Hasan",
+        "text": "The stitching is very neat and the leather aroma is authentic. Very classy.",
+        "rating": 5,
+        "time": "6 days ago"
+      }
+    ],
+    "questionsList": [
+      "Can it hold old large-size Bangladeshi IDs?",
+      "Does it have a coin pocket?"
+    ]
+  }
+]

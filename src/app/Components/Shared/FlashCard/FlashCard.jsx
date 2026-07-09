@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const Card = ({ product }) => {
+const FlashCard = ({ product }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // অটোমেটিক ডান থেকে বামে ইমেজ স্লাইড করার জন্য (ঐচ্ছিক)
@@ -52,7 +52,7 @@ const Card = ({ product }) => {
 
         {/* Discount Tag */}
         {product.discount && (
-          <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-xl z-10">
+          <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-xl z-10">
             {product.discount}
           </span>
         )}
@@ -135,4 +135,4 @@ const Card = ({ product }) => {
   );
 };
 
-export default Card;
+export default FlashCard;

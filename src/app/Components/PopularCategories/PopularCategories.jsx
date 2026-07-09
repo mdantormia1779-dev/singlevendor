@@ -62,7 +62,7 @@ const PopularCategories = () => {
   return (
     <section
       id="popular-categories"
-      className="py-20 bg-white scroll-mt-24"
+      className="py-15 bg-white scroll-mt-24"
     >
       <div className="max-w-7xl mx-auto px-6">
         <h2 className="text-5xl font-bold text-center text-slate-900 mb-14">
