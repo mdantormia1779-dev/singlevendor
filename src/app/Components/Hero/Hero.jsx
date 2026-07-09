@@ -1,4 +1,9 @@
 "use client";
+import {
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+} from "lucide-react";
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
@@ -50,7 +55,16 @@ const Hero = () => {
 
             {/* Call to Action Buttons */}
             <div className="flex flex-wrap items-center gap-4 mb-10">
-              <button className="bg-[#16b77a] hover:bg-[#129a66] text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-sm">
+              <button
+                onClick={() =>
+                  document
+                    .getElementById("popular-categories")
+                    ?.scrollIntoView({
+                      behavior: "smooth",
+                    })
+                }
+                className="bg-[#16b77a] hover:bg-[#129a66] text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-sm"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"
@@ -75,16 +89,19 @@ const Hero = () => {
               </Link>
             </div>
 
-            {/* Bottom Trust Icons */}
+            {/* Bottom Trust Icons - Updated to match screenshot */}
             <div className="flex flex-wrap items-center gap-6 text-sm text-[#64748b] font-medium border-t border-[#e2e8f0] pt-6">
               <div className="flex items-center gap-2">
-                <span className="text-[#16b77a]">🛡️</span> Secure payment
+                <ShieldCheck className="w-5 h-5 text-[#16b77a]" />
+                Secure payment
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[#16b77a]">🚚</span> Free delivery
+                <Truck className="w-5 h-5 text-[#16b77a]" />
+                Free delivery
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[#16b77a]">🔄</span> 7 days return
+                <RotateCcw className="w-5 h-5 text-[#16b77a]" />
+                7 days return
               </div>
             </div>
           </div>

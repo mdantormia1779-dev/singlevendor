@@ -32,7 +32,7 @@ const schema = yup.object().shape({
 });
 
 export default function OTPVerification() {
-    const router = useRouter();
+  const router = useRouter();
   // ২. useForm সেটআপ
   const {
     control,
@@ -117,7 +117,10 @@ export default function OTPVerification() {
             Google
           </Button>
 
-          <div className="text-center text-sm text-gray-500 cursor-pointer hover:underline">
+          <div
+            onClick={() => router.push("/login")}
+            className="text-center text-sm text-gray-500 cursor-pointer hover:underline"
+          >
             ← Back
           </div>
         </CardContent>
