@@ -95,7 +95,7 @@ const AllPages = () => {
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800">
       {/* Top Green Border */}
-      <div className="h-2 bg-[#10b981]"></div>
+      <div className="bg-[#10b981]"></div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}

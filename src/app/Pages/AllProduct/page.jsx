@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Card from "@/app/Components/Shared/Card/Card";
 import SidebarFilter from "@/app/Components/SidebarFilter/SidebarFilter";
@@ -6,6 +8,12 @@ import NoProducts from "../NoProducts/NoProducts";
 import products from "@/app/data/data.json";
 
 const AllPages = () => {
+  // স্টেট ম্যানেজমেন্ট
+  const [searchTerm, setSearchTerm] = useState("");
+  const [priceDraft, setPriceDraft] = useState(50000);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedRatings, setSelectedRatings] = useState([]);
+
   const categories = [
     { name: "Fashion", count: 12 },
     { name: "Electronics", count: 12 },
@@ -14,10 +22,23 @@ const AllPages = () => {
     { name: "grocery", count: 12 },
   ];
 
+  // হ্যান্ডলার ফাংশনসমূহ
+  const handleCategoryToggle = (name) => {
+    setSelectedCategories((prev) =>
+      prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
+    );
+  };
+
+  const handleRatingToggle = (rating) => {
+    setSelectedRatings((prev) =>
+      prev.includes(rating) ? prev.filter((r) => r !== rating) : [...prev, rating]
+    );
+  };
+
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800">
       {/* Top Green Border */}
-      <div className="h-2 bg-[#10b981]"></div>
+      <div className="bg-[#10b981]"></div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
@@ -37,23 +58,40 @@ const AllPages = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Reusable Sidebar Component */}
-          <SidebarFilter categories={categories} />
+          {/* SidebarFilter উইথ অল প্রপস */}
+          <SidebarFilter
+            categories={categories}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            maxPrice={100000}
+            priceDraft={priceDraft}
+            onPriceChange={setPriceDraft}
+            onPriceReset={() => setPriceDraft(100000)}
+            selectedCategories={selectedCategories}
+            onCategoryToggle={handleCategoryToggle}
+            selectedRatings={selectedRatings}
+            onRatingToggle={handleRatingToggle}
+            onApply={() => console.log("Filters Applied")}
+            onClear={() => {
+              setSearchTerm("");
+              setPriceDraft(100000);
+              setSelectedCategories([]);
+              setSelectedRatings([]);
+            }}
+          />
 
           {/* Products Grid */}
-         <div className="flex-1">
-
-         {products.length > 0 ? (
-         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {products.map((product) => (
-           <Card key={product.id} product={product} />
-             ))}
-            </div>
+          <div className="flex-1">
+            {products && products.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {products.map((product) => (
+                  <Card key={product.id} product={product} />
+                ))}
+              </div>
             ) : (
-         <NoProducts />
-         )}
-
-         </div>
+              <NoProducts />
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -17,9 +17,9 @@ const SidebarFilter = ({
     onClear,
 }) => {
     const percent = maxPrice > 0 ? (priceDraft / maxPrice) * 100 : 0;
-
+    console.log(percent)
     return (
-        <div className="w-full lg:w-64 flex-shrink-0">
+        <div className="w-full lg:w-64 shrink-0">
             <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
 
                 {/* Search */}
