@@ -123,7 +123,7 @@ const Navbar = () => {
       </header>
 
       {/* Spacer (Navbar Height) */}
-      <div className="h-[162px]" />
+      <div className="h-40.5" />
     </>
   );
 };

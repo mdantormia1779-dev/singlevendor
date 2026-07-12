@@ -73,7 +73,7 @@ const DetailsPage = () => {
         {/* LEFT */}{" "}
         <div className="space-y-4">
           {" "}
-          <div className="bg-gray-50 p-4 rounded-xl flex items-center justify-center relative w-full h-[400px] border border-gray-100 overflow-hidden">
+          <div className="bg-gray-50 p-4 rounded-xl flex items-center justify-center relative w-full h-100 border border-gray-100 overflow-hidden">
             {currentMainImage && (
               <Image
                 fill

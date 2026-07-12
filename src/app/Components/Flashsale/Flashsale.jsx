@@ -36,7 +36,7 @@ const Flashsale = () => {
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
               <Flame className="text-red-500" />
             </div>
             <div>
@@ -57,7 +57,7 @@ const Flashsale = () => {
             ].map((item) => (
               <div
                 key={item.label}
-                className="bg-red-500 text-white rounded-xl px-4 py-2 text-center min-w-[70px]"
+                className="bg-red-500 text-white rounded-xl px-4 py-2 text-center min-w-17.5"
               >
                 <h3 className="text-2xl sm:text-3xl font-bold">
                   {String(item.value).padStart(2, "0")}

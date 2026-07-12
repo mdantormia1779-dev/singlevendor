@@ -9,15 +9,35 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import Link from "next/link";
+import { useDispatch, useSelector } from "react-redux"; // ১. নতুন ইমপোর্ট
+import { addToCart } from "../../../store/cartSlice";
+import { toast } from "react-toastify";
+import Image from "next/image";
 
 const FlashCard = ({ product }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const dispatch = useDispatch(); // ৩. হুকটি ইনিশিয়ালাইজ করা হলো
 
-  // অটোমেটিক ডান থেকে বামে ইমেজ স্লাইড করার জন্য (ঐচ্ছিক)
-  // যদি চান নির্দিষ্ট সময় পর পর ইমেজ নিজে নিজেই স্লাইড হবে, তবে নিচের useEffect-টি রাখতে পারেন
+  // ✅ cart state আনলাম
+  const cartItems = useSelector((state) => state.cart.items);
+
+  // ✅ Add to cart function (UPDATED)
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+
+    const exists = cartItems.find((item) => item.id === product.id);
+
+    if (exists) {
+      toast.error("Already added to cart ❌");
+    } else {
+      dispatch(addToCart(product));
+      toast.success("Added to cart ✅");
+    }
+  };
+
   useEffect(() => {
     if (!product.images || product.images.length <= 1) return;
-    
+
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % product.images.length);
     }, 4000); // প্রতি ৪ সেকেন্ড পর পর পরিবর্তন হবে
@@ -26,27 +46,32 @@ const FlashCard = ({ product }) => {
   }, [product.images]);
 
   // সুরক্ষার জন্য ব্যাকআপ ইমেজ হ্যান্ডলিং
-  const imagesList = product.images && product.images.length > 0 
-    ? product.images 
-    : ["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80"]; // Default fallback image
+  const imagesList =
+    product.images && product.images.length > 0
+      ? product.images
+      : [
+          "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80",
+        ]; // Default fallback image
 
   return (
-    <div className="min-w-[280px] bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl duration-300 flex flex-col justify-between">
+    <div className="min-w-70 bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl duration-300 flex flex-col justify-between">
       {/* Image Slider Section */}
       <div className="relative overflow-hidden group">
-        
         {/* Sliding Wrapper (ডান থেকে বামে অ্যানিমেশনের মূল ট্রিক) */}
-        <div 
-          className="flex transition-transform duration-500 ease-out h-[230px]"
+        <div
+          className="flex transition-transform duration-500 ease-out h-57.5"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {imagesList.map((imgUrl, index) => (
-            <img
-              key={index}
-              src={imgUrl}
-              alt={`${product.title} - ${index + 1}`}
-              className="w-full h-full object-cover flex-shrink-0"
-            />
+            <div key={index} className="relative w-full h-full shrink-0">
+              <Image
+                src={imgUrl}
+                alt={`${product.title} - ${index + 1}`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
           ))}
         </div>
 
@@ -83,7 +108,7 @@ const FlashCard = ({ product }) => {
       <div className="p-4 flex flex-col flex-1 justify-between">
         <div>
           {/* Title */}
-          <h3 className="font-bold text-sm leading-5 text-gray-800 line-clamp-2 min-h-[40px]">
+          <h3 className="font-bold text-sm leading-5 text-gray-800 line-clamp-2 min-h-10">
             {product.title}
           </h3>
 
@@ -113,22 +138,27 @@ const FlashCard = ({ product }) => {
 
         {/* Action Buttons */}
         <div className="flex gap-2 mt-4">
-          <Link href={"/Pages/ShopingCards"}>
-            <button className="w-12 h-10 rounded-xl border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 duration-200">
+          {/* Action Buttons */}
+          <div className="flex gap-2 mt-4">
+            {/* ৪. ShoppingCart বাটনে onClick হ্যান্ডলার যোগ করা হলো */}
+            <button
+              onClick={handleAddToCart}
+              className="w-12 h-10 rounded-xl border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 duration-200"
+            >
               <ShoppingCart size={18} />
             </button>
-          </Link>
 
-          <Link
-            href={`/Pages/Details/${product.id}`}
-            className="flex-1 bg-emerald-500 text-white rounded-xl flex items-center justify-between px-4 py-2.5 text-xs font-semibold hover:bg-emerald-600 duration-200"
-          >
-            <div className="flex items-center gap-1.5">
-              <ShoppingBasket size={16} />
-              <span>Buy Now</span>
-            </div>
-            <ArrowUpRight size={16} />
-          </Link>
+            <Link
+              href={`/Pages/Details/${product.id}`}
+              className="flex-1 bg-emerald-500 text-white rounded-xl flex items-center justify-between px-4 py-2.5 text-xs font-semibold hover:bg-emerald-600 duration-200"
+            >
+              <div className="flex items-center gap-1.5">
+                <ShoppingBasket size={16} />
+                <span>Buy Now</span>
+              </div>
+              <ArrowUpRight size={16} />
+            </Link>
+          </div>
         </div>
       </div>
     </div>

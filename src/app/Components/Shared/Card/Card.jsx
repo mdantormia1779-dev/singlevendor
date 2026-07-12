@@ -12,12 +12,13 @@ import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux"; // ১. নতুন ইমপোর্ট
 import { addToCart } from "../../../store/cartSlice";
 import { toast } from "react-toastify";
+import Image from "next/image";
 
 const Card = ({ product }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const dispatch = useDispatch(); // ৩. হুকটি ইনিশিয়ালাইজ করা হলো
 
-   // ✅ cart state আনলাম
+  // ✅ cart state আনলাম
   const cartItems = useSelector((state) => state.cart.items);
 
   // ✅ Add to cart function (UPDATED)
@@ -53,21 +54,24 @@ const Card = ({ product }) => {
         ]; // Default fallback image
 
   return (
-    <div className="min-w-[280px] bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl duration-300 flex flex-col justify-between">
+    <div className="min-w-70 bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl duration-300 flex flex-col justify-between">
       {/* Image Slider Section */}
       <div className="relative overflow-hidden group">
         {/* Sliding Wrapper (ডান থেকে বামে অ্যানিমেশনের মূল ট্রিক) */}
         <div
-          className="flex transition-transform duration-500 ease-out h-[230px]"
+          className="flex transition-transform duration-500 ease-out h-57.5"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {imagesList.map((imgUrl, index) => (
-            <img
-              key={index}
-              src={imgUrl}
-              alt={`${product.title} - ${index + 1}`}
-              className="w-full h-full object-cover flex-shrink-0"
-            />
+            <div key={index} className="relative w-full h-full shrink-0">
+              <Image
+                src={imgUrl}
+                alt={`${product.title} - ${index + 1}`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
           ))}
         </div>
 
@@ -104,7 +108,7 @@ const Card = ({ product }) => {
       <div className="p-4 flex flex-col flex-1 justify-between">
         <div>
           {/* Title */}
-          <h3 className="font-bold text-sm leading-5 text-gray-800 line-clamp-2 min-h-[40px]">
+          <h3 className="font-bold text-sm leading-5 text-gray-800 line-clamp-2 min-h-10">
             {product.title}
           </h3>
 
