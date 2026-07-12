@@ -12,7 +12,7 @@ const DeleveryPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("bkash");
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-7xl">
       <div className="max-w-5xl space-y-6">
         {/* Delivery Method */}
         <Card>
