@@ -6,11 +6,13 @@ import NavMenu from "./NavMenu/NavMenu";
 import Image from "next/image";
 import logo from "../../../../../public/logo.png";
 import Link from "next/link";
+import { useSelector } from "react-redux";
 
 const Navbar = () => {
   const [isBottomVisible, setIsBottomVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
+  const cartItems = useSelector((state) => state.cart.items);
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -85,16 +87,18 @@ const Navbar = () => {
                 </span>
               </div>
 
-              {/* Cart */}
-              <div className="relative cursor-pointer">
-                <div className="w-12 h-12 rounded-full bg-[#e9f9f3] flex items-center justify-center">
-                  <ShoppingCart size={22} />
-                </div>
+              <Link href="/Pages/ShopingCards">
+                <div className="relative cursor-pointer">
+                  <div className="w-12 h-12 rounded-full bg-[#e9f9f3] flex items-center justify-center">
+                    <ShoppingCart size={22} />
+                  </div>
 
-                <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[#19b77a] text-white text-xs flex items-center justify-center">
-                  3
-                </span>
-              </div>
+                  {/* ✅ Dynamic count */}
+                  <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[#19b77a] text-white text-xs flex items-center justify-center">
+                    {cartItems.length}
+                  </span>
+                </div>
+              </Link>
 
               {/* User */}
               <div className="w-12 h-12 rounded-full bg-[#19b77a] flex items-center justify-center text-white cursor-pointer">

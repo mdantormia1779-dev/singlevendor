@@ -9,21 +9,31 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import Link from "next/link";
-import { useDispatch } from "react-redux"; // ১. নতুন ইমপোর্ট
+import { useDispatch, useSelector } from "react-redux"; // ১. নতুন ইমপোর্ট
 import { addToCart } from "../../../store/cartSlice";
+import { toast } from "react-toastify";
 
 const Card = ({ product }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const dispatch = useDispatch(); // ৩. হুকটি ইনিশিয়ালাইজ করা হলো
 
-  // Add to cart function
+   // ✅ cart state আনলাম
+  const cartItems = useSelector((state) => state.cart.items);
+
+  // ✅ Add to cart function (UPDATED)
   const handleAddToCart = (e) => {
-    e.preventDefault(); // লিংকে ক্লিক করলে যেন পেজ রিডাইরেক্ট না হয়
-    dispatch(addToCart(product));
-    alert("Added to cart!"); // কনফার্মেশনের জন্য (ঐচ্ছিক)
+    e.preventDefault();
+
+    const exists = cartItems.find((item) => item.id === product.id);
+
+    if (exists) {
+      toast.error("Already added to cart ❌");
+    } else {
+      dispatch(addToCart(product));
+      toast.success("Added to cart ✅");
+    }
   };
-  // অটোমেটিক ডান থেকে বামে ইমেজ স্লাইড করার জন্য (ঐচ্ছিক)
-  // যদি চান নির্দিষ্ট সময় পর পর ইমেজ নিজে নিজেই স্লাইড হবে, তবে নিচের useEffect-টি রাখতে পারেন
+
   useEffect(() => {
     if (!product.images || product.images.length <= 1) return;
 

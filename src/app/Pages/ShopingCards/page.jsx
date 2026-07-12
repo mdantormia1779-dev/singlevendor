@@ -2,25 +2,23 @@
 import EmptyCard from "@/app/Components/EmptyCard/EmptyCard";
 import OrderSummery from "@/app/Components/OrderSummery/OrderSummery";
 import ShopingAdd from "@/app/Components/ShopingAdd/ShopingAdd";
+import { useSelector } from "react-redux";
 
 const ShopingCardsPage = () => {
-  const cartItems = [
-    { id: 1, name: "Apple AirPods Max Wireless Over-Ear Headphones white", price: "2,499", oldPrice: "3,999", sold: "1240", image: "https://i.ibb.co.com/TxnXgdRg/5df0afe2acf9f2a66088e57fc2503209b37beaea.png" },
-    { id: 2, name: "Premium Wireless Headphones - Noise Cancelling", price: "2,499", oldPrice: "3,999", sold: "850", image: "https://i.ibb.co.com/TxnXgdRg/5df0afe2acf9f2a66088e57fc2503209b37beaea.png" },
-    { id: 3, name: "Apple AirPods Max Sky Blue Edition", price: "2,499", oldPrice: "3,999", sold: "670", image: "https://i.ibb.co.com/TxnXgdRg/5df0afe2acf9f2a66088e57fc2503209b37beaea.png" },
-    { id: 4, name: "Apple AirPods Max Sky Blue Edition", price: "2,499", oldPrice: "3,999", sold: "670", image: "https://i.ibb.co.com/TxnXgdRg/5df0afe2acf9f2a66088e57fc2503209b37beaea.png" },
-  ];
+  // state.cart.items নিশ্চিত করুন আপনার Slice-এর সাথে মিল আছে কিনা
+  const cartItems = useSelector((state) => state.cart.items) || [];
 
   return (
     <section className="min-h-screen bg-[#FAFAFA] py-10">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-          <p className="mt-3 text-lg text-gray-500">{cartItems.length} items in your cart</p>
+          <p className="mt-3 text-lg text-gray-500">
+            {cartItems.length} items in your cart
+          </p>
         </div>
 
-        {/* কন্ডিশনাল রেন্ডারিং: কার্ট খালি থাকলে EmptyCard, না থাকলে মেইন গ্রিড */}
-        {cartItems.length === 0 ? (
+        {!cartItems || cartItems.length === 0 ? (
           <EmptyCard />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

@@ -7,12 +7,14 @@ import { ShieldCheck, Truck, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const OrderSummery = ({ items = [] }) => {
-  // সাবটোটাল হিসেব করা (যদি প্রাইস স্ট্রিং হিসেবে থাকে তবে parseInt ব্যবহার করুন)
-  const subtotal = items.reduce(
-    (acc, item) => acc + parseInt(item.price.replace(/,/g, "")),
-    0,
-  );
-  const savings = 1500; // আপনি চাইলে এটিও ডায়নামিক করতে পারেন
+  // সাবটোটাল হিসেব করার লজিক (দাম * কোয়ান্টিটি)
+  const subtotal = items.reduce((acc, item) => {
+    const price = typeof item.price === 'string' ? parseFloat(item.price.replace(/,/g, "")) : item.price;
+    const quantity = item.quantity || 1;
+    return acc + (price * quantity);
+  }, 0);
+
+  const savings = 1500; 
   const total = subtotal - savings;
 
   return (
@@ -23,25 +25,31 @@ const OrderSummery = ({ items = [] }) => {
 
           {/* Dynamic Items List */}
           <div className="space-y-4 mb-6">
-            {items.map((item, i) => (
-              <div key={i} className="flex gap-4">
-                <div className="relative w-16 h-16 rounded-lg overflow-hidden border">
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    className="object-cover"
-                  />
+            {items.map((item, i) => {
+              const price = typeof item.price === 'string' ? parseFloat(item.price.replace(/,/g, "")) : item.price;
+              const quantity = item.quantity || 1;
+              const itemTotal = price * quantity;
+
+              return (
+                <div key={item.id || i} className="flex gap-4">
+                  <div className="relative w-16 h-16 rounded-lg overflow-hidden border">
+                    <Image
+                      src={item.images?.[0] || "/placeholder.jpg"}
+                      alt={item.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="grow">
+                    <h4 className="text-sm font-medium leading-tight line-clamp-2">
+                      {item.title}
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-1">Qty: {quantity}</p>
+                  </div>
+                  <div className="text-sm font-bold">৳{itemTotal.toLocaleString()}</div>
                 </div>
-                <div className="flex-grow">
-                  <h4 className="text-sm font-medium leading-tight line-clamp-2">
-                    {item.name}
-                  </h4>
-                  <p className="text-xs text-gray-500 mt-1">Qty: 1</p>
-                </div>
-                <div className="text-sm font-bold">৳{item.price}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <Separator className="my-4" />
@@ -56,7 +64,7 @@ const OrderSummery = ({ items = [] }) => {
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Delivery charges</span>
-              <span className="font-medium text-gray-900">free</span>
+              <span className="font-medium text-gray-900">Free</span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Savings</span>
@@ -72,17 +80,17 @@ const OrderSummery = ({ items = [] }) => {
           <div className="flex justify-between items-center mb-6">
             <span className="text-lg font-bold">Total</span>
             <span className="text-lg font-bold text-emerald-600">
-              ৳{total.toLocaleString()}
+              ৳{total > 0 ? total.toLocaleString() : 0}
             </span>
           </div>
 
           <Link href={"/Pages/OrderConfirm"}>
             <Button className="w-full bg-emerald-500 hover:bg-emerald-600 h-12 text-white font-semibold rounded-xl">
-              checkout <ArrowRight className="ml-2 h-4 w-4" />
+              Checkout <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
 
-          <div className="flex justify-center gap-6 mt-4 text-xs text-gray-400">
+          <div className="flex justify-center gap-6, mt-4 text-xs text-gray-400">
             <div className="flex items-center gap-1">
               <ShieldCheck size={14} /> Secure
             </div>

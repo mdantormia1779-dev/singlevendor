@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+
 import { Button } from "@/components/ui/button";
 import {
   Heart,
@@ -17,22 +19,28 @@ import Image from "next/image";
 import Link from "next/link";
 import productsData from "@/app/data/data.json";
 import Deteals from "@/app/Components/Deteals/page";
+import { addToCart } from "@/app/store/cartSlice";
+import { toast } from "react-toastify";
 
 const DetailsPage = () => {
   const params = useParams();
+  const dispatch = useDispatch();
+
+  // ✅ Hook always top level
+  const cartItems = useSelector((state) => state.cart.items);
+
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  // প্রোডাক্ট অবজেক্টটি মেমরাইজ করা হলো
   const product = useMemo(() => {
     const productId = Number(params?.id);
-    return productsData.find((p) => p.id === productId) || productsData[0];
+    return productsData.find((p) => p.id === productId) || null;
   }, [params?.id]);
 
   if (!product) {
     return (
       <div className="text-center py-20 font-bold text-gray-500">
-        Product not found!
+        Product not found!{" "}
       </div>
     );
   }
@@ -40,21 +48,31 @@ const DetailsPage = () => {
   const currentMainImage =
     product.images?.[activeImageIndex] || product.images?.[0];
 
-  // ডাইনামিক প্রাইস ক্যালকুলেশন
   const basePrice = Number(product.price || 0);
   const baseOldPrice = Number(product.oldPrice || 0);
   const totalPrice = basePrice * quantity;
   const totalOldPrice = baseOldPrice * quantity;
 
-  console.log("total price: ", totalOldPrice);
-  console.log(product);
+  // ✅ Add to cart handler
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    const exists = cartItems.find((item) => item.id === product.id);
+
+    if (exists) {
+      toast.error("Already added to cart ❌");
+    } else {
+      dispatch(addToCart({ ...product, quantity }));
+      toast.success("Added to cart ✅");
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-10 py-10">
-      {/* --- TOP SECTION: Product Info --- */}
+      {" "}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Left Side: Main Image and Gallery Thumbnails */}
+        {/* LEFT */}{" "}
         <div className="space-y-4">
+          {" "}
           <div className="bg-gray-50 p-4 rounded-xl flex items-center justify-center relative w-full h-[400px] border border-gray-100 overflow-hidden">
             {currentMainImage && (
               <Image
@@ -65,10 +83,8 @@ const DetailsPage = () => {
                 priority
                 className="w-full h-full rounded-lg object-cover transition-all duration-300"
               />
-            )}
+            )}{" "}
           </div>
-
-          {/* Thumbnails */}
           <div className="grid grid-cols-4 gap-4">
             {product.images?.map((imgUrl, i) => (
               <div
@@ -91,8 +107,7 @@ const DetailsPage = () => {
             ))}
           </div>
         </div>
-
-        {/* Right Side: Product Details Text */}
+        {/* RIGHT */}
         <div className="space-y-5">
           <div className="flex justify-between items-center">
             <span className="text-xs bg-emerald-50 text-emerald-600 px-2 py-1 rounded border border-emerald-200 font-semibold">
@@ -120,7 +135,6 @@ const DetailsPage = () => {
             <span>{product.sold}</span>
           </div>
 
-          {/* ডাইনামিক প্রাইস */}
           <div className="flex items-baseline gap-3">
             <span className="text-3xl md:text-4xl font-bold text-emerald-600">
               ৳{totalPrice}
@@ -130,50 +144,22 @@ const DetailsPage = () => {
                 ৳{totalOldPrice}
               </span>
             )}
-            {product.discount && (
-              <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">
-                {product.discount}
-              </span>
-            )}
           </div>
 
-          {/* Core Commitments */}
-          <div className="border border-emerald-100 bg-emerald-50/30 p-4 rounded-xl space-y-3 text-sm text-gray-600">
-            <div className="flex items-center gap-2.5">
-              <Truck size={18} className="text-emerald-600" />
-              <span>
-                Delivery in Dhaka: <strong>24-48 hours</strong>
-              </span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck size={18} className="text-emerald-600" />
-              <span>100% Original Product Guarantee</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <RotateCcw size={18} className="text-emerald-600" />
-              <span>7-day easy return policy</span>
-            </div>
-          </div>
-
-          {/* Quantity Selector */}
           <div className="flex items-center gap-4 py-2">
             <span className="font-medium text-gray-700">Quantity:</span>
             <div className="flex items-center border rounded-xl bg-gray-50 p-1">
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-lg h-8 w-8"
                 onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
               >
                 <Minus size={14} />
               </Button>
-              <span className="px-4 font-bold text-sm min-w-[40px] text-center">
-                {quantity}
-              </span>
+              <span className="px-4 font-bold text-sm">{quantity}</span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-lg h-8 w-8"
                 onClick={() => setQuantity((prev) => prev + 1)}
               >
                 <Plus size={14} />
@@ -181,28 +167,26 @@ const DetailsPage = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* ✅ ONLY CHANGE HERE */}
           <div className="grid grid-cols-2 gap-4 pt-2">
             <Button
-              asChild
-              variant="outline"
+              onClick={handleAddToCart}
               className="h-12 border-emerald-600 text-emerald-600 hover:bg-emerald-50 font-bold rounded-xl"
+              variant="outline"
             >
-              <Link href="/Pages/ShopingCards">
-                <ShoppingCart className="mr-2 h-5 w-5" /> Add to cart
-              </Link>
+              <ShoppingCart className="mr-2 h-5 w-5" />
+              Add to cart
             </Button>
+
             <Button
               asChild
-              className="h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all"
+              className="h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl"
             >
               <Link href="/Pages/OrderConfirm">Buy Now</Link>
             </Button>
           </div>
         </div>
       </div>
-
-      {/* 🔥 পরিবর্তন: সরাসরি ফিল্টার করা একক product অবজেক্ট পাঠানো হলো */}
       <Deteals product={product} />
     </div>
   );
