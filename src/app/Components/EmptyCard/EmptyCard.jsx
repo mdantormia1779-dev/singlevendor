@@ -1,4 +1,5 @@
 import { ArrowRight, ShoppingBag } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 const EmptyCard = () => {
@@ -24,10 +25,12 @@ const EmptyCard = () => {
           </p>
 
           {/* Button */}
+          <Link href={"/"}>
           <button className="mt-10 h-14 px-8 bg-[#18B779] hover:bg-[#139866] text-white rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 mx-auto transition-all duration-300">
             Explore Best Sellers
             <ArrowRight size={20} />
           </button>
+          </Link>
         </div>
       </div>
     </div>
