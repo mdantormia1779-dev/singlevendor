@@ -13,6 +13,8 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
 
   const cartItems = useSelector((state) => state.cart.items);
+  const wishlistItems = useSelector((state) => state.wishlist.items);
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -77,15 +79,22 @@ const Navbar = () => {
               </Link>
 
               {/* Wishlist */}
-              <div className="relative cursor-pointer">
-                <div className="w-12 h-12 rounded-full bg-[#ffeaea] flex items-center justify-center">
-                  <Heart size={22} />
-                </div>
+              <Link href="/Dashboard/user/Wishlist">
+                {" "}
+                {/* ধরে নিলাম উইশলিস্ট পেজের পাথ এটি */}
+                <div className="relative cursor-pointer">
+                  <div className="w-12 h-12 rounded-full bg-[#ffeaea] flex items-center justify-center">
+                    <Heart size={22} />
+                  </div>
 
-                <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                  2
-                </span>
-              </div>
+                  {/* ✅ Dynamic Wishlist Count */}
+                  {wishlistItems.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                      {wishlistItems.length}
+                    </span>
+                  )}
+                </div>
+              </Link>
 
               <Link href="/Pages/ShopingCards">
                 <div className="relative cursor-pointer">
