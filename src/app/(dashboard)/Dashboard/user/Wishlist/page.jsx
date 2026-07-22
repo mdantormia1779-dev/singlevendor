@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { Trash2, Heart, AlertTriangle } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux"; // Redux Hooks
-import { toggleWishlist } from "../../../store/wishlistSlice"; // আপনার পাথ অনুযায়ী ঠিক করে নিন
-import { addToCart } from "../../../store/cartSlice"; // Add to cart এর জন্য
+import { toggleWishlist } from "../../../../store/wishlistSlice"; // আপনার পাথ অনুযায়ী ঠিক করে নিন
+import { addToCart } from "../../../../store/cartSlice"; // Add to cart এর জন্য
 import { toast } from "react-toastify";
 import Image from "next/image";
 import Link from "next/link";
