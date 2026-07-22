@@ -17,7 +17,7 @@ import {
   LogOut,
 } from "lucide-react";
 import Image from "next/image";
-import logo from "../../../../../../public/logo.png";
+import logo from "../../../../../../../public/logo.png";
 
 const menuItems = [
   {
