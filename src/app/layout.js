@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
   const pathname = usePathname();
 
   // Dashboard এর সব route এ Navbar/Footer hide হবে
-  const hideLayout = pathname.startsWith("/Dashboard");
+  const hideLayout = pathname.startsWith("/Dashboard/admin");
 
   return (
     <html
