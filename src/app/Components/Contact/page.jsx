@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { clearBuyNowItem, addOrder } from "@/app/store/cartSlice";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,186 +31,200 @@ const locationData = {
 };
 
 const ContactPage = () => {
+  const router = useRouter();
+  const dispatch = useDispatch();
+
+  const buyNowItem = useSelector((state) => state.cart.buyNowItem);
+
   const [selectedDivision, setSelectedDivision] = useState("");
   const [districts, setDistricts] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // লোডিং স্টেট
-  const router = useRouter(); // রাউটার হ্যান্ডলিং
+  const [isLoading, setIsLoading] = useState(false);
+
+  // ❗ no product
+  if (!buyNowItem) {
+    return (
+      <div className="text-center py-20 text-gray-500 font-bold">
+        No order found!
+      </div>
+    );
+  }
 
   const handleDivisionChange = (division) => {
     setSelectedDivision(division);
     setDistricts(locationData[division] || []);
   };
 
-  // অর্ডার কনফার্ম সাবমিট হ্যান্ডলার
+  // ✅ Confirm Order
   const handleConfirmOrder = () => {
     setIsLoading(true);
 
-    // ২ সেকেন্ড লোডিং দেখানোর পর Success পেজে রিডাইরেক্ট হবে
+    const newOrder = {
+      id: `#FIN-${Date.now()}`,
+
+      // ✅ better date format
+      date: new Date().toLocaleDateString("en-BD", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }),
+
+      items: buyNowItem.quantity, // ✅ dynamic
+
+      status: "Confirmed",
+      statusColor: "bg-yellow-100 text-yellow-600",
+
+      total: `৳${buyNowItem.totalPrice}`,
+      review: false,
+
+      products: [
+        {
+          name: buyNowItem.title,
+          qty: buyNowItem.quantity,
+          price: `৳${buyNowItem.totalPrice}`,
+          image: buyNowItem.image || buyNowItem.images?.[0],
+        },
+      ],
+    };
+
     setTimeout(() => {
+      dispatch(addOrder(newOrder)); // ✅ save order
+      dispatch(clearBuyNowItem());
       router.push("/Pages/OrderSuccess");
-    }, 2000);
+    }, 1500);
   };
 
   return (
     <div className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Left Column: Form Sections */}
+      
+      {/* LEFT */}
       <div className="lg:col-span-2 space-y-6">
-        {/* Contact Information */}
+
+        {/* Contact */}
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <div className="flex items-center gap-2 font-semibold">
-              <span className="p-1.5 bg-green-50 text-green-600 rounded-full">
-                👤
-              </span>
-              <h2>Contact information</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="Enter your name"
-                  className="mt-1 "
-                />
-              </div>
-              <div>
-                <Label htmlFor="mobile">Mobile Number *</Label>
-                <Input id="mobile" placeholder="01XXXXXXXXX" className="mt-1" />
-              </div>
+            <h2 className="font-semibold">Contact Information</h2>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input placeholder="Full Name *" />
+              <Input placeholder="Mobile Number *" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Delivery Address */}
+        {/* Address */}
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <div className="flex items-center gap-2 font-semibold">
-              <span className="p-1.5 bg-green-50 text-green-600 rounded-full">
-                📍
-              </span>
-              <h2>Delivery address</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Division Select */}
-              <div>
-                <Label>Division *</Label>
-                <Select onValueChange={handleDivisionChange}>
-                  <SelectTrigger className="mt-1 w-full">
-                    <SelectValue placeholder="Select Division" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.keys(locationData).map((div) => (
-                      <SelectItem key={div} value={div}>
-                        {div}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <h2 className="font-semibold">Delivery Address</h2>
 
-              {/* District Select */}
-              <div>
-                <Label>District</Label>
-                <Select disabled={!selectedDivision}>
-                  <SelectTrigger className="mt-1 w-full">
-                    <SelectValue placeholder="Select District" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {districts.map((dist) => (
-                      <SelectItem key={dist} value={dist}>
-                        {dist}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="grid grid-cols-2 gap-4">
 
-              {/* Area / Upazila */}
-              <div className="col-span-full">
-                <Label>Area / Upazila</Label>
-                <Input
-                  placeholder="Enter your area or upazila"
-                  className="mt-1"
-                />
-              </div>
+              <Select onValueChange={handleDivisionChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Division" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.keys(locationData).map((div) => (
+                    <SelectItem key={div} value={div}>
+                      {div}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-              {/* Street Address - Made larger (h-24) */}
-              <div className="col-span-full">
-                <Label htmlFor="address">Street Address *</Label>
-                <textarea
-                  id="address"
-                  placeholder="House/Flat Number, Road, Area..."
-                  className="mt-1 w-full p-3 border rounded-md min-h-20 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-                  rows={3}
-                />
-              </div>
+              <Select disabled={!selectedDivision}>
+                <SelectTrigger>
+                  <SelectValue placeholder="District" />
+                </SelectTrigger>
+                <SelectContent>
+                  {districts.map((dist) => (
+                    <SelectItem key={dist} value={dist}>
+                      {dist}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Input
+                className="col-span-full"
+                placeholder="Area / Upazila"
+              />
+
+              <textarea
+                className="col-span-full p-3 border rounded-md"
+                rows={3}
+                placeholder="Street Address"
+              />
             </div>
           </CardContent>
         </Card>
 
-        {/* Delevery Page Section */}
         <DeleveryPage />
       </div>
 
-      {/* Right Column: Order Summary */}
-      <div className="space-y-4">
+      {/* RIGHT */}
+      <div>
         <Card>
           <CardContent className="pt-6 space-y-4">
             <h2 className="font-bold">Order Summary</h2>
+
+            {/* Product */}
             <div className="flex items-center gap-3">
-              <div className="w-16 h-16 bg-gray-100 rounded-lg border" />
-              <div className="text-sm">
-                <p className="font-medium">Premium Wireless Headphones</p>
-                <p className="text-gray-500">Qty: 1</p>
+              <img
+                src={buyNowItem.image || buyNowItem.images?.[0]}
+                className="w-16 h-16 rounded-lg border"
+              />
+
+              <div>
+                <p className="font-medium">{buyNowItem.title}</p>
+                <p className="text-sm text-gray-500">
+                  Qty: {buyNowItem.quantity}
+                </p>
               </div>
-              <p className="font-bold">৳2,499</p>
+
+              <p className="font-bold ml-auto">
+                ৳{buyNowItem.totalPrice}
+              </p>
             </div>
 
-            <div className="flex gap-2">
-              <Input placeholder="Coupon code" />
-              <Button variant="outline">Apply</Button>
-            </div>
-
-            <div className="space-y-2 text-sm border-t pt-4">
+            {/* Price */}
+            <div className="border-t pt-4 space-y-2">
               <div className="flex justify-between">
-                <span>Subtotal</span> <span>৳2,499</span>
+                <span>Subtotal</span>
+                <span>৳{buyNowItem.totalPrice}</span>
               </div>
+
               <div className="flex justify-between">
-                <span>Delivery charges</span>{" "}
-                <span className="text-green-600 font-bold">FREE</span>
+                <span>Delivery</span>
+                <span className="text-green-600 font-bold">
+                  FREE
+                </span>
               </div>
-              <div className="flex justify-between pt-2 font-bold text-lg">
-                <span>Total</span>{" "}
-                <span className="text-green-600">৳2,499</span>
+
+              <div className="flex justify-between font-bold text-lg">
+                <span>Total</span>
+                <span className="text-green-600">
+                  ৳{buyNowItem.totalPrice}
+                </span>
               </div>
             </div>
 
-            {/* লোডিং ইফেক্টসহ আপডেটেড বাটন */}
-            <Button 
+            {/* Button */}
+            <Button
               onClick={handleConfirmOrder}
               disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700 h-12 text-base flex items-center justify-center gap-2"
+              className="w-full bg-green-600 h-12 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="animate-spin h-5 w-5" />
                   Processing...
                 </>
               ) : (
-                "Confirm Order - ৳2,499"
+                `Confirm Order - ৳${buyNowItem.totalPrice}`
               )}
             </Button>
-
-            <div className="flex justify-center mt-4 gap-4 text-xs text-gray-400">
-              <span>🛡️ Secure</span> <span>🚚 Fast Delivery</span>
-            </div>
           </CardContent>
         </Card>
-
-        <div className="bg-green-50 p-4 rounded-lg text-sm text-green-900 border border-green-100">
-          <strong>Note:</strong> You will receive a confirmation call. Please
-          provide the correct number.
-        </div>
       </div>
     </div>
   );

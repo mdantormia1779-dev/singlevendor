@@ -1,49 +1,74 @@
-// redux/cartSlice.js
-
 import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = {
+  items: [],
+  buyNowItem: null,
+  orders: [], // ✅ NEW (সব order এখানে থাকবে)
+};
 
 const cartSlice = createSlice({
   name: "cart",
-  initialState: {
-    items: [],
-  },
+  initialState,
   reducers: {
-    // cartSlice.js
+    // ✅ Add to Cart
     addToCart: (state, action) => {
-      const exists = state.items.find((item) => item.id === action.payload.id);
+      const exists = state.items.find(
+        (item) => item.id === action.payload.id
+      );
 
       if (exists) {
-        exists.quantity += 1;
+        exists.quantity += action.payload.quantity || 1;
       } else {
-        // এখানে ...action.payload এর সাথে quantity: 1 যোগ করে দিচ্ছি
-        state.items.push({ ...action.payload, quantity: 1 });
+        state.items.push({
+          ...action.payload,
+          quantity: action.payload.quantity || 1,
+        });
       }
     },
 
-    // ✅ quantity increase
+    // ✅ Increase
     increaseQuantity: (state, action) => {
       const item = state.items.find((item) => item.id === action.payload);
-      if (item) {
-        item.quantity += 1;
-      }
+      if (item) item.quantity += 1;
     },
 
-    // ✅ quantity decrease
+    // ✅ Decrease
     decreaseQuantity: (state, action) => {
       const item = state.items.find((item) => item.id === action.payload);
-      if (item && item.quantity > 1) {
-        item.quantity -= 1;
-      }
+      if (item && item.quantity > 1) item.quantity -= 1;
     },
 
-    // ✅ remove item
+    // ✅ Remove
     removeFromCart: (state, action) => {
-      state.items = state.items.filter((item) => item.id !== action.payload);
+      state.items = state.items.filter(
+        (item) => item.id !== action.payload
+      );
+    },
+
+    // ✅ Buy Now
+    setBuyNowItem: (state, action) => {
+      state.buyNowItem = action.payload;
+    },
+
+    clearBuyNowItem: (state) => {
+      state.buyNowItem = null;
+    },
+
+    // ✅ ⭐ সবচেয়ে important (Order Save)
+    addOrder: (state, action) => {
+      state.orders.unshift(action.payload); // latest first
     },
   },
 });
 
-export const { addToCart, increaseQuantity, decreaseQuantity, removeFromCart } =
-  cartSlice.actions;
+export const {
+  addToCart,
+  increaseQuantity,
+  decreaseQuantity,
+  removeFromCart,
+  setBuyNowItem,
+  clearBuyNowItem,
+  addOrder, // ✅ export করতে হবে
+} = cartSlice.actions;
 
 export default cartSlice.reducer;
