@@ -1,223 +1,49 @@
-// "use client";
-
-// import Link from "next/link";
-// import { useState } from "react";
-// import {
-//   ChevronLeft,
-//   ChevronRight,
-//   House,
-//   PackagePlus,
-//   Layers3,
-//   Package,
-//   ShoppingBag,
-//   Users,
-//   Globe,
-//   Clock3,
-//   Settings,
-//   LogOut,
-// } from "lucide-react";
-// import Image from "next/image";
-// import logo from "../../../../../../../public/logo.png";
-
-// const menuItems = [
-//   {
-//     title: "Ecommerce",
-//     href: "/Dashboard/admin",
-//     icon: House,
-//     active: true,
-//   },
-//   {
-//     title: "Product",
-//     href: "/Dashboard/admin/product",
-//     icon: PackagePlus,
-//   },
-//   {
-//     title: "Category",
-//     href: "/Dashboard/admin/category",
-//     icon: Layers3,
-//   },
-//   {
-//     title: "Attributes",
-//     href: "/Dashboard/admin/attributes",
-//     icon: Package,
-//   },
-//   {
-//     title: "Order",
-//     href: "/Dashboard/admin/order",
-//     icon: ShoppingBag,
-//   },
-//   {
-//     title: "Users",
-//     href: "/Dashboard/admin/users",
-//     icon: Users,
-//   },
-//   {
-//     title: "Store Setting",
-//     href: "/Dashboard/admin/store-setting",
-//     icon: Globe,
-//   },
-//   {
-//     title: "Report",
-//     href: "/Dashboard/admin/report",
-//     icon: Clock3,
-//   },
-//   {
-//     title: "Setting",
-//     href: "/Dashboard/admin/setting",
-//     icon: Settings,
-//   },
-// ];
-
-// export default function DashboardSidebar() {
-//   const [collapsed, setCollapsed] = useState(false);
-
-//   return (
-//     <aside
-//       className={`relative bg-white border-r min-h-screen transition-all duration-300 ${
-//         collapsed ? "w-20" : "w-64"
-//       }`}
-//     >
-//       {/* Header */}
-//       <div className="relative h-20 border-b border-gray-200">
-//         <div className="flex items-center h-full px-4">
-//           <Link href="/" className="flex items-center gap-3">
-//             {!collapsed && (
-//               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500">
-//                 <Image
-//                   src={logo}
-//                   alt="Finora"
-//                   width={24}
-//                   height={24}
-//                   priority
-//                 />
-//               </div>
-//             )}
-
-//             {!collapsed && (
-//               <h2 className="text-2xl font-bold tracking-tight">Finora</h2>
-//             )}
-//           </Link>
-
-//           <button
-//             onClick={() => setCollapsed(!collapsed)}
-//             className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition"
-//           >
-//             {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Menu */}
-//       <div className="py-8">
-//         {menuItems.map((item) => {
-//           const Icon = item.icon;
-
-//           return (
-//             <Link
-//               key={item.title}
-//               href={item.href}
-//               className={`mx-3 mb-2 flex items-center ${
-//                 collapsed ? "justify-center" : "justify-between"
-//               } rounded-xl px-4 py-3 transition-all ${
-//                 item.active
-//                   ? "text-orange-500"
-//                   : "text-gray-900 hover:bg-gray-100"
-//               }`}
-//             >
-//               <div className="flex items-center gap-4">
-//                 <Icon size={22} />
-
-//                 {!collapsed && (
-//                   <span className="text-[17px] font-semibold">
-//                     {item.title}
-//                   </span>
-//                 )}
-//               </div>
-
-//               {!collapsed && (
-//                 <ChevronRight
-//                   size={18}
-//                   className={item.active ? "text-orange-500" : "text-black"}
-//                 />
-//               )}
-//             </Link>
-//           );
-//         })}
-//       </div>
-
-//       {/* Logout */}
-//       <div className="absolute bottom-8 left-0 w-full px-3">
-//         <button
-//           className={`w-full flex items-center ${
-//             collapsed ? "justify-center" : "gap-4"
-//           } rounded-xl px-4 py-3 text-black hover:bg-gray-100 transition`}
-//         >
-//           <LogOut size={22} />
-
-//           {!collapsed && (
-//             <span className="text-[17px] font-semibold">Log Out</span>
-//           )}
-//         </button>
-//       </div>
-//     </aside>
-//   );
-// }
-
-
-
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
   House,
   PackagePlus,
-  Layers3,
-
   ShoppingBag,
   Users,
-
   Settings,
   LogOut,
-  ChevronUp,
+  Store,
+  ShieldCheck,
 } from "lucide-react";
 import Image from "next/image";
 import logo from "../../../../../../../public/logo.png";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "@/app/store/authSlice";
+import { toast } from "react-toastify";
 
 const menuItems = [
   {
-    title: "Ecommerce",
+    title: "Overview",
     href: "/Dashboard/admin",
     icon: House,
-    active: true,
   },
   {
-    title: "Category",
-    href: "/Dashboard/admin/category",
-    icon: Layers3,
-  },
-  
-  {
-    title: "Order",
-    href: "/Dashboard/admin/order",
+    title: "Orders",
+    href: "/Dashboard/admin/orders",
     icon: ShoppingBag,
   },
   {
-    title: "Users",
-    href: "/Dashboard/admin/users",
+    title: "Customers",
+    href: "/Dashboard/admin/customers",
     icon: Users,
   },
-  
   {
-    title: "Setting",
-    href: "/Dashboard/admin/setting",
+    title: "Settings",
+    href: "/Dashboard/admin/settings",
     icon: Settings,
   },
 ];
 
-// প্রোডাক্টের সাব-মেনুগুলোর তালিকা
 const productSubMenus = [
   { title: "All Products", href: "/Dashboard/admin/product/all-products" },
   { title: "Add Product", href: "/Dashboard/admin/product/add-product" },
@@ -226,142 +52,200 @@ const productSubMenus = [
 ];
 
 export default function DashboardSidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
   const [collapsed, setCollapsed] = useState(false);
-  // প্রোডাক্ট ড্রপডাউন খোলা বা বন্ধ রাখার স্টেট
-  const [isProductOpen, setIsProductOpen] = useState(false);
+  const [isProductOpen, setIsProductOpen] = useState(true);
+
+  const authUser = useSelector((state) => state.auth?.user);
+  const userName = authUser?.name || authUser?.fullName || "Md Antor Mia (admin)";
+  const userEmail = authUser?.email || "superadmin@erp.com";
+  const userRole = authUser?.role || "SUPER_ADMIN";
+  const userAvatar =
+    authUser?.avatar ||
+    authUser?.image ||
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80";
+
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.info("Logged out from admin panel");
+    router.push("/login");
+  };
 
   return (
     <aside
-      className={`relative bg-white border-r min-h-screen transition-all duration-300 ${
+      className={`relative bg-white border-r border-gray-200 min-h-screen transition-all duration-300 flex flex-col justify-between ${
         collapsed ? "w-20" : "w-64"
       }`}
     >
-      {/* Header */}
-      <div className="relative h-20 border-b border-gray-200">
-        <div className="flex items-center h-full px-4">
-          <Link href="/" className="flex items-center gap-3">
-            {!collapsed && (
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500">
+      <div>
+        {/* Header */}
+        <div className="relative h-20 border-b border-gray-200">
+          <div className="flex items-center h-full px-4 justify-between">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 shrink-0">
                 <Image
                   src={logo}
                   alt="Finora"
-                  width={24}
-                  height={24}
+                  width={22}
+                  height={22}
                   priority
                 />
               </div>
-            )}
 
-            {!collapsed && (
-              <h2 className="text-2xl font-bold tracking-tight">Finora</h2>
-            )}
+              {!collapsed && (
+                <div>
+                  <h2 className="text-xl font-extrabold tracking-tight text-gray-900 leading-none">Finora</h2>
+                  <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Admin Panel</span>
+                </div>
+              )}
+            </Link>
+
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition cursor-pointer"
+            >
+              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Menu */}
+        <div className="py-6 px-3 space-y-1">
+          {/* Main Dashboard */}
+          <Link
+            href="/Dashboard/admin"
+            className={`flex items-center ${
+              collapsed ? "justify-center" : "justify-between"
+            } rounded-xl px-3.5 py-3 transition-all ${
+              pathname === "/Dashboard/admin"
+                ? "bg-emerald-50 text-emerald-600 font-bold"
+                : "text-gray-700 hover:bg-gray-100 font-medium"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <House size={20} />
+              {!collapsed && <span className="text-sm">Overview</span>}
+            </div>
+            {!collapsed && <ChevronRight size={16} className="text-gray-400" />}
           </Link>
 
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+          {/* Products Dropdown */}
+          <div className="space-y-1">
+            <button
+              onClick={() => setIsProductOpen(!isProductOpen)}
+              className={`w-full flex items-center ${
+                collapsed ? "justify-center" : "justify-between"
+              } rounded-xl px-3.5 py-3 text-gray-700 hover:bg-gray-100 transition-all font-medium cursor-pointer ${
+                pathname.includes("/product") ? "text-emerald-600 font-bold" : ""
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <PackagePlus size={20} className={pathname.includes("/product") ? "text-emerald-600" : "text-gray-600"} />
+                {!collapsed && <span className="text-sm">Products</span>}
+              </div>
+
+              {!collapsed && (
+                <ChevronRight
+                  size={16}
+                  className={`text-gray-400 transition-transform duration-200 ${
+                    isProductOpen ? "rotate-90 text-emerald-600" : "rotate-0"
+                  }`}
+                />
+              )}
+            </button>
+
+            {isProductOpen && !collapsed && (
+              <div className="ml-6 pl-4 border-l-2 border-emerald-100 space-y-1">
+                {productSubMenus.map((subItem) => {
+                  const isSubActive = pathname === subItem.href;
+                  return (
+                    <Link
+                      key={subItem.title}
+                      href={subItem.href}
+                      className={`block py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                        isSubActive
+                          ? "text-emerald-600 bg-emerald-50"
+                          : "text-gray-600 hover:text-emerald-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {subItem.title}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Other Menu Items */}
+          {menuItems.slice(1).map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.title}
+                href={item.href}
+                className={`flex items-center ${
+                  collapsed ? "justify-center" : "justify-between"
+                } rounded-xl px-3.5 py-3 transition-all ${
+                  isActive
+                    ? "bg-emerald-50 text-emerald-600 font-bold"
+                    : "text-gray-700 hover:bg-gray-100 font-medium"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon size={20} />
+                  {!collapsed && <span className="text-sm">{item.title}</span>}
+                </div>
+                {!collapsed && <ChevronRight size={16} className="text-gray-400" />}
+              </Link>
+            );
+          })}
+
+          {/* Return to Store */}
+          <Link
+            href="/"
+            className={`flex items-center ${
+              collapsed ? "justify-center" : "justify-between"
+            } rounded-xl px-3.5 py-3 text-gray-700 hover:bg-gray-100 transition-all font-medium`}
           >
-            {collapsed ? <ChevronRight size={18} /> : <ChevronRight size={18} />}
-          </button>
+            <div className="flex items-center gap-3">
+              <Store size={20} className="text-emerald-600" />
+              {!collapsed && <span className="text-sm text-emerald-700 font-semibold">Storefront</span>}
+            </div>
+          </Link>
         </div>
       </div>
 
-      {/* Menu */}
-      <div className="py-8">
-        {menuItems.map((item, index) => {
-          const Icon = item.icon;
-
-          // ইকমাস বা অন্য সাধারণ মেনুগুলোর আগে বা পরে Product মেনু বসানোর ব্যবস্থা
-          return (
-            <div key={item.title}>
-              <Link
-                href={item.href}
-                className={`mx-3 mb-2 flex items-center ${
-                  collapsed ? "justify-center" : "justify-between"
-                } rounded-xl px-4 py-3 transition-all ${
-                  item.active
-                    ? "text-orange-500"
-                    : "text-gray-900 hover:bg-gray-100"
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <Icon size={22} />
-                  {!collapsed && (
-                    <span className="text-[17px] font-semibold">
-                      {item.title}
-                    </span>
-                  )}
-                </div>
-
-                {!collapsed && (
-                  <ChevronRight
-                    size={18}
-                    className={item.active ? "text-orange-500" : "text-black"}
-                  />
-                )}
-              </Link>
-
-              {/* Ecommerce মেনুর পরেই Product ড্রপডাউন মেনু যুক্ত করা হলো */}
-              {index === 0 && (
-                <div className="mx-3 mb-2">
-                  <button
-                    onClick={() => setIsProductOpen(!isProductOpen)}
-                    className={`w-full flex items-center ${
-                      collapsed ? "justify-center" : "justify-between"
-                    } rounded-xl px-4 py-3 text-gray-900 hover:bg-gray-100 transition-all`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <PackagePlus size={22} className="text-orange-500" />
-                      {!collapsed && (
-                        <span className="text-[17px] font-semibold text-orange-500">
-                          Product
-                        </span>
-                      )}
-                    </div>
-
-                    {!collapsed && (
-                      <ChevronRight
-                        size={18}
-                        className={`text-orange-500 transition-transform duration-300 ${
-                          isProductOpen ? "rotate-90" : "rotate-0"
-                        }`}
-                      />
-                    )}
-                  </button>
-
-                  {/* সাব-মেনু লিস্ট (Product ওপেন থাকলে দেখাবে এবং সাইডবার ছোট (collapsed) না থাকলে কাজ করবে) */}
-                  {isProductOpen && !collapsed && (
-                    <div className="ml-8 mt-1 flex flex-col space-y-1 border-l-2 border-orange-200 pl-4">
-                      {productSubMenus.map((subItem) => (
-                        <Link
-                          key={subItem.title}
-                          href={subItem.href}
-                          className="py-2 text-[15px] font-medium text-gray-600 hover:text-orange-500 transition"
-                        >
-                          {subItem.title}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
+      {/* User Info Card & Logout at Bottom */}
+      <div className="p-3 border-t border-gray-100 space-y-2">
+        {!collapsed && (
+          <div className="flex items-center gap-3 p-2 rounded-2xl bg-slate-50 border border-slate-100">
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-emerald-100 shrink-0 border border-emerald-200">
+              {userAvatar ? (
+                <Image src={userAvatar} alt={userName} fill sizes="40px" className="object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center font-bold text-emerald-700 text-xs">
+                  {userName.charAt(0)}
                 </div>
               )}
             </div>
-          );
-        })}
-      </div>
+            <div className="min-w-0 grow">
+              <p className="text-xs font-bold text-slate-900 truncate">{userName}</p>
+              <p className="text-[10px] text-emerald-600 font-extrabold uppercase tracking-wide truncate">{userRole}</p>
+            </div>
+          </div>
+        )}
 
-      {/* Logout */}
-      <div className="absolute bottom-8 left-0 w-full px-3">
         <button
+          onClick={handleLogout}
           className={`w-full flex items-center ${
-            collapsed ? "justify-center" : "gap-4"
-          } rounded-xl px-4 py-3 text-black hover:bg-gray-100 transition`}
+            collapsed ? "justify-center" : "gap-3"
+          } rounded-xl px-3.5 py-2.5 text-rose-500 hover:bg-rose-50 transition cursor-pointer font-semibold text-xs`}
         >
-          <LogOut size={22} />
-
-          {!collapsed && (
-            <span className="text-[17px] font-semibold">Log Out</span>
-          )}
+          <LogOut size={16} />
+          {!collapsed && <span>Log Out</span>}
         </button>
       </div>
     </aside>

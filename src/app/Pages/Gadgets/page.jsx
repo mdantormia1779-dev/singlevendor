@@ -1,28 +1,45 @@
-"use client"; // ক্লায়েন্ট কম্পোনেন্ট
+"use client";
 
-import React, { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import React, { useState, useMemo } from "react";
 import Card from "@/app/Components/Shared/Card/Card";
 import SidebarFilter from "@/app/Components/SidebarFilter/SidebarFilter";
 import NoProducts from "../NoProducts/NoProducts";
-import products from "@/app/data/data.json";
+import productsData from "@/app/data/data.json";
 
-const Gadgets = () => {
-  // স্টেট ম্যানেজমেন্ট
+const GADGET_KEYWORDS = ["Gadget", "Accessory", "Accessories", "Bag", "Watch", "Audio", "Tech", "Device"];
+
+export default function GadgetsPage() {
+  const categoryProducts = useMemo(() => {
+    return productsData.filter((p) => {
+      const cat = p.specifications?.category || "";
+      return GADGET_KEYWORDS.some(
+        (kw) => cat.toLowerCase().includes(kw.toLowerCase()) || p.title.toLowerCase().includes(kw.toLowerCase())
+      );
+    });
+  }, []);
+
+  const baseList = categoryProducts.length > 0 ? categoryProducts : productsData.slice(4, 12);
+
+  const MAX_PRICE = useMemo(() => {
+    const prices = baseList.map((p) => Number(p.price));
+    return Math.max(...prices, 10000);
+  }, [baseList]);
+
+  const categories = useMemo(() => {
+    const counts = {};
+    baseList.forEach((p) => {
+      const cat = p.specifications?.category || "Gadgets";
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, count]) => ({ name, count }));
+  }, [baseList]);
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [priceDraft, setPriceDraft] = useState(50000);
+  const [priceDraft, setPriceDraft] = useState(MAX_PRICE);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedRatings, setSelectedRatings] = useState([]);
+  const [sortOption, setSortOption] = useState("popular");
 
-  const categories = [
-    { name: "Fashion", count: 12 },
-    { name: "Electronics", count: 12 },
-    { name: "Home & Living", count: 12 },
-    { name: "Beauty", count: 12 },
-    { name: "grocery", count: 12 },
-  ];
-
-  // হ্যান্ডলার ফাংশনসমূহ
   const handleCategoryToggle = (name) => {
     setSelectedCategories((prev) =>
       prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
@@ -35,66 +52,102 @@ const Gadgets = () => {
     );
   };
 
+  const handleClearAll = () => {
+    setSearchTerm("");
+    setPriceDraft(MAX_PRICE);
+    setSelectedCategories([]);
+    setSelectedRatings([]);
+    setSortOption("popular");
+  };
+
+  const filteredProducts = useMemo(() => {
+    return baseList.filter((p) => {
+      const price = Number(p.price);
+      const rating = parseFloat(p.rating || 0);
+
+      const matchesSearch =
+        !searchTerm.trim() ||
+        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesPrice = price <= priceDraft;
+      const matchesCategory =
+        selectedCategories.length === 0 ||
+        selectedCategories.includes(p.specifications?.category);
+      const matchesRating =
+        selectedRatings.length === 0 ||
+        selectedRatings.some((minRating) => rating >= minRating);
+
+      return matchesSearch && matchesPrice && matchesCategory && matchesRating;
+    });
+  }, [baseList, searchTerm, priceDraft, selectedCategories, selectedRatings]);
+
+  const sortedProducts = useMemo(() => {
+    const list = [...filteredProducts];
+    if (sortOption === "price-low") return list.sort((a, b) => Number(a.price) - Number(b.price));
+    if (sortOption === "price-high") return list.sort((a, b) => Number(b.price) - Number(a.price));
+    if (sortOption === "rating") return list.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+    return list;
+  }, [filteredProducts, sortOption]);
+
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800">
-      <div className="bg-[#10b981]"></div>
-
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-5xl font-bold tracking-tight text-slate-900">
-              Gadgets
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900">
+              Gadgets & Accessories
             </h1>
-            <p className="text-sm text-slate-500 mt-1">12 products found</p>
+            <p className="text-sm text-slate-500 mt-1">
+              {sortedProducts.length} {sortedProducts.length === 1 ? "product" : "products"} found
+            </p>
           </div>
-          <div className="mt-4 md:mt-0">
-            <button className="flex items-center justify-between w-32 px-3 py-2 bg-white border border-slate-200 rounded-md text-sm shadow-sm hover:bg-slate-50 transition-colors">
-              <span>popular</span>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
-            </button>
+
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-500 font-medium">Sort by:</span>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium shadow-xs focus:outline-none focus:ring-2 focus:ring-[#10b981] cursor-pointer"
+            >
+              <option value="popular">Popular</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Top Rated</option>
+            </select>
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* SidebarFilter উইথ অল প্রপস */}
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
           <SidebarFilter
             categories={categories}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            maxPrice={100000}
+            maxPrice={MAX_PRICE}
             priceDraft={priceDraft}
             onPriceChange={setPriceDraft}
-            onPriceReset={() => setPriceDraft(100000)}
+            onPriceReset={() => setPriceDraft(MAX_PRICE)}
             selectedCategories={selectedCategories}
             onCategoryToggle={handleCategoryToggle}
             selectedRatings={selectedRatings}
             onRatingToggle={handleRatingToggle}
-            onApply={() => console.log("Filters Applied")}
-            onClear={() => {
-              setSearchTerm("");
-              setPriceDraft(100000);
-              setSelectedCategories([]);
-              setSelectedRatings([]);
-            }}
+            onApply={() => {}}
+            onClear={handleClearAll}
           />
 
-          {/* Products Grid */}
-          <div className="flex-1">
-            {products && products.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {products.map((product) => (
+          <div className="flex-1 w-full">
+            {sortedProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {sortedProducts.map((product) => (
                   <Card key={product.id} product={product} />
                 ))}
               </div>
             ) : (
-              <NoProducts />
+              <NoProducts onReset={handleClearAll} />
             )}
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default Gadgets;
+}

@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import cartReducer from './cartSlice';
-import wishlistReducer from './wishlistSlice'; // ইমপোর্ট
+import wishlistReducer from './wishlistSlice';
+import authReducer from './authSlice';
 
 export const store = configureStore({
   reducer: {
     cart: cartReducer,
-    wishlist: wishlistReducer, // রেজিস্টার করা
+    wishlist: wishlistReducer,
+    auth: authReducer,
   },
 });

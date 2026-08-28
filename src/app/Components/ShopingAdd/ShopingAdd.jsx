@@ -17,15 +17,17 @@ const ShopingAdd = ({ item }) => {
   const priceValue = typeof item.price === 'string' ? parseFloat(item.price.replace(/,/g, '')) : item.price;
   const totalPrice = priceValue * item.quantity;
 
+  const itemImage = item.images?.[0] || item.image || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80";
+
   return (
-    <div className="flex items-center gap-4 p-6 border border-gray-200 rounded-2xl shadow-sm bg-white">
+    <div className="flex flex-col sm:flex-row items-center gap-5 p-5 sm:p-6 border border-gray-200 rounded-3xl shadow-xs bg-white">
       {/* ইমেজ সেকশন */}
-      <div className="relative w-36 h-36 shrink-0 overflow-hidden rounded-sm">
+      <div className="relative w-full sm:w-32 h-32 shrink-0 overflow-hidden rounded-2xl bg-gray-50 border border-gray-100">
         <Image
-          src={item.images[0]}
-          alt={item.title}
+          src={itemImage}
+          alt={item.title || "Product"}
           fill
-          className="object-cover rounded-sm"
+          className="object-cover"
         />
       </div>
 

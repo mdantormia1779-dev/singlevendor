@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import Link from "next/link";
 import {
   Shirt,
@@ -43,40 +43,47 @@ const categories = [
     path: "/Pages/MenShoes",
   },
   {
-    title: "Book",
-    icon: BookOpen,
+    title: "Gadgets",
+    icon: Sparkles,
     bg: "bg-orange-100",
     color: "text-orange-500",
-    path: "/Components/Working",
+    path: "/Pages/Gadgets",
   },
   {
-    title: "Grocery",
+    title: "All Products",
     icon: Package,
     bg: "bg-emerald-100",
     color: "text-emerald-500",
-    path: "/Components/Working",
+    path: "/Pages/AllProduct",
   },
 ];
 
 const PopularCategories = () => {
+  const scrollRef = useRef(null);
+
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      const scrollAmount = direction === "left" ? -300 : 300;
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
   return (
     <section
       id="popular-categories"
-      className="py-15 bg-white scroll-mt-24"
+      className="py-14 bg-white scroll-mt-24"
     >
-      <div className="max-w-7xl mx-auto px-6">
-        <h2 className="text-5xl font-bold text-center text-slate-900 mb-14">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <h2 className="text-3xl md:text-5xl font-bold text-center text-slate-900 mb-10 md:mb-14 tracking-tight">
           Popular Categories
         </h2>
 
-        <div className="relative flex items-center">
-          {/* Left Button */}
-          <button className="absolute -left-4 z-10 w-10 h-10 rounded-full bg-[#19b77a] text-white flex items-center justify-center shadow-lg hover:bg-[#149765] transition">
-            <ChevronLeft size={20} />
-          </button>
-
-          {/* Categories */}
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6 w-full">
+        <div className="relative">
+          {/* Categories Grid */}
+          <div
+            ref={scrollRef}
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 w-full"
+          >
             {categories.map((item, index) => {
               const Icon = item.icon;
 
@@ -84,19 +91,19 @@ const PopularCategories = () => {
                 <Link
                   key={index}
                   href={item.path}
-                  className="block"
+                  className="block group"
                 >
-                  <div className="h-40 border border-gray-200 rounded-3xl flex flex-col items-center justify-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-white">
+                  <div className="h-40 border border-gray-200 rounded-3xl flex flex-col items-center justify-center group-hover:shadow-lg group-hover:border-[#19b77a] group-hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-white p-4">
                     <div
-                      className={`w-14 h-14 rounded-2xl ${item.bg} flex items-center justify-center`}
+                      className={`w-14 h-14 rounded-2xl ${item.bg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
                     >
                       <Icon
                         className={item.color}
-                        size={30}
+                        size={28}
                       />
                     </div>
 
-                    <h3 className="mt-6 text-2xl font-semibold text-slate-800 text-center">
+                    <h3 className="mt-4 text-base sm:text-lg font-semibold text-slate-800 text-center group-hover:text-[#19b77a] transition-colors">
                       {item.title}
                     </h3>
                   </div>
@@ -104,15 +111,10 @@ const PopularCategories = () => {
               );
             })}
           </div>
-
-          {/* Right Button */}
-          <button className="absolute -right-4 z-10 w-10 h-10 rounded-full bg-[#19b77a] text-white flex items-center justify-center shadow-lg hover:bg-[#149765] transition">
-            <ChevronRight size={20} />
-          </button>
         </div>
       </div>
     </section>
   );
 };
 
-export default PopularCategories;
+export default PopularCategories;

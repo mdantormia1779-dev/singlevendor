@@ -1,0 +1,143 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  avatar        String?
+  password      String?
+  role          String    @default("admin") // "admin" | "customer"
+  phone         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  orders        Order[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  issuer                String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  image     String?
+  itemCount Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+model Product {
+  id             Int         @id @default(autoincrement())
+  title          String
+  price          Float
+  oldPrice       Float?
+  rating         Float       @default(4.8)
+  reviews        Int         @default(0)
+  sold           String      @default("0 sold")
+  discount       String?
+  images         String      // JSON stringified array of image URLs
+  description    String
+  features       String      // JSON stringified array of features
+  category       String      @default("Fashion")
+  categoryId     String?
+  categoryRel    Category?   @relation(fields: [categoryId], references: [id])
+  inStock        Boolean     @default(true)
+  stockCount     Int         @default(50)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  orderItems     OrderItem[]
+}
+
+model Order {
+  id              String      @id // e.g. "#ORD-998241"
+  customerName    String
+  customerPhone   String
+  customerAddress String
+  total           Float
+  subtotal        Float
+  deliveryFee     Float       @default(60)
+  status          String      @default("Pending") // "Pending" | "Confirmed" | "Processing" | "Delivered" | "Cancelled"
+  paymentMethod   String      @default("COD")     // "COD" | "BKASH" | "NAGAD"
+  paymentWallet   String?
+  paymentTrxId    String?
+  deliveryMethod  String      @default("Standard (2-4 days)")
+  deliveryNotes   String?
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  products        OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId Int?
+  product   Product? @relation(fields: [productId], references: [id])
+  name      String
+  price     Float
+  qty       Int      @default(1)
+  image     String
+}
+
+model StoreSetting {
+  id                  String   @id @default("default")
+  storeName           String   @default("Finora Ecommerce")
+  email               String   @default("support@finora.com")
+  phone               String   @default("+880 1577147480")
+  address             String   @default("Dhaka, Bangladesh")
+  bkashNumber         String   @default("01577147480")
+  nagadNumber         String   @default("01577147480")
+  standardDeliveryFee Float    @default(60)
+  expressDeliveryFee  Float    @default(120)
+  updatedAt           DateTime @updatedAt
+}

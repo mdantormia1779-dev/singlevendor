@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -21,8 +21,10 @@ import { REGEXP_ONLY_DIGITS } from "input-otp";
 import Image from "next/image";
 import logo from "../../../public/logo.png";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { toast } from "react-toastify";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
-// ১. ভ্যালিডেশন স্কিমা
 const schema = yup.object().shape({
   otp: yup
     .string()
@@ -33,7 +35,8 @@ const schema = yup.object().shape({
 
 export default function OTPVerification() {
   const router = useRouter();
-  // ২. useForm সেটআপ
+  const [isLoading, setIsLoading] = useState(false);
+
   const {
     control,
     handleSubmit,
@@ -43,25 +46,38 @@ export default function OTPVerification() {
     defaultValues: { otp: "" },
   });
 
-  // ৩. সাবমিট হ্যান্ডলার
   const onSubmit = (data) => {
-    console.log("Submitted OTP:", data.otp);
-    router.push("/");
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      toast.success("Phone verified successfully! Welcome back 👋");
+      router.push("/Dashboard/user");
+    }, 600);
+  };
+
+  const handleResend = () => {
+    toast.info("A new OTP code has been sent to your phone! 📩");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f0f7ff] p-4">
-      <Card className="w-full max-w-md shadow-lg bg-white">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-2 items-center">
-            <div className="bg-emerald-500 p-2 rounded-lg text-white">
-              <Image src={logo} alt="Logo" width={24} height={24} />
-            </div>
-            <span className="text-2xl font-bold ml-2">Finora</span>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/70 p-4">
+      <Card className="w-full max-w-md shadow-lg bg-white rounded-3xl border border-gray-100 p-2">
+        <CardHeader className="text-center space-y-2 pb-4">
+          <div className="flex justify-center mb-1">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="bg-emerald-500 p-2.5 rounded-xl shadow-xs">
+                <Image src={logo} alt="Finora" width={26} height={26} />
+              </div>
+              <span className="text-2xl font-extrabold tracking-tight text-gray-900">
+                Finora
+              </span>
+            </Link>
           </div>
-          <CardTitle>Verify your number</CardTitle>
-          <CardDescription>
-            We sent a 6-digit code to +8801xxxxxxxxx
+          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
+            Verify your phone
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm text-gray-500">
+            We sent a 6-digit code to your phone number
           </CardDescription>
         </CardHeader>
 
@@ -82,8 +98,8 @@ export default function OTPVerification() {
                         <InputOTPSlot
                           key={i}
                           index={i}
-                          className="w-12 h-12 text-lg font-semibold text-center border border-gray-300 rounded-sm first:rounded-sm! last:rounded-sm!
-                          focus:border-[#16b77a] focus:ring-2 focus:ring-[#16b77a]/30 transition-all duration-200"
+                          className="w-11 h-12 text-lg font-bold text-center border border-gray-200 rounded-xl
+                          focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-200"
                         />
                       ))}
                     </InputOTPGroup>
@@ -91,37 +107,44 @@ export default function OTPVerification() {
                 )}
               />
               {errors.otp && (
-                <p className="text-red-500 text-xs">{errors.otp.message}</p>
+                <p className="text-red-500 text-xs mt-1">{errors.otp.message}</p>
               )}
             </div>
 
-            <p className="text-center text-sm text-gray-500">
-              Resend code in 00:59
-            </p>
+            <div className="text-center text-xs text-gray-500 flex items-center justify-center gap-1">
+              <span>Didn't receive the code?</span>
+              <button
+                type="button"
+                onClick={handleResend}
+                className="text-emerald-600 font-bold hover:underline cursor-pointer"
+              >
+                Resend code
+              </button>
+            </div>
 
             <Button
               type="submit"
-              className="w-full bg-emerald-500 hover:bg-emerald-600"
+              disabled={isLoading}
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md shadow-emerald-100 text-sm cursor-pointer"
             >
-              Verify & Proceed
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" size={18} />
+                  Verifying...
+                </>
+              ) : (
+                "Verify & Continue"
+              )}
             </Button>
           </form>
 
-          <div className="relative text-center text-sm py-2">
-            <span className="bg-white px-2 text-gray-500">
-              Or continue with
-            </span>
-          </div>
-
-          <Button variant="outline" className="w-full">
-            Google
-          </Button>
-
-          <div
-            onClick={() => router.push("/login")}
-            className="text-center text-sm text-gray-500 cursor-pointer hover:underline"
-          >
-            ← Back
+          <div className="pt-2 text-center">
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-emerald-600 font-medium"
+            >
+              <ArrowLeft size={14} /> Back to Login
+            </Link>
           </div>
         </CardContent>
       </Card>
@@ -129,82 +152,3 @@ export default function OTPVerification() {
   );
 }
 
-// import {
-//   Card,
-//   CardContent,
-//   CardHeader,
-//   CardTitle,
-//   CardDescription,
-// } from "@/components/ui/card";
-// import { Button } from "@/components/ui/button";
-// import {
-//   InputOTP,
-//   InputOTPGroup,
-//   InputOTPSlot,
-// } from "@/components/ui/input-otp";
-// import Image from "next/image";
-// import logo from "../../../public/logo.png";
-
-// export default function OTPVerification() {
-//   return (
-//     <div className="min-h-screen flex items-center justify-center bg-[#f0f7ff] p-4">
-//       <Card className="w-full max-w-md shadow-lg bg-white">
-//         <CardHeader className="text-center">
-//           <div className="flex justify-center mb-2 items-center">
-//             <div className="bg-emerald-500 p-2 rounded-lg text-white">
-//               <Image src={logo} alt="Logo" width={24} height={24} />
-//             </div>
-//             <span className="text-2xl font-bold ml-2">Finora</span>
-//           </div>
-//           <CardTitle>Verify your number</CardTitle>
-//           <CardDescription>
-//             We sent a 6-digit code to +8801xxxxxxxxx
-//           </CardDescription>
-//         </CardHeader>
-//         <CardContent className="space-y-4">
-//           <div className="flex justify-center">
-//             <InputOTP maxLength={6}>
-//               <InputOTPGroup className="flex gap-2">
-//                 {[0, 1, 2, 3, 4, 5].map((i) => (
-//                   <InputOTPSlot
-//                     key={i}
-//                     index={i}
-//             className="
-//     w-12 h-12
-//     text-lg font-semibold text-center
-//     border border-gray-300
-//     rounded-sm
-//     first:rounded-sm!
-//     last:rounded-sm!
-
-//     focus:border-[#16b77a]
-//     focus:ring-2 focus:ring-[#16b77a]/30
-//     transition-all duration-200
-//   "
-//                   />
-//                 ))}
-//               </InputOTPGroup>
-//             </InputOTP>
-//           </div>
-//           <p className="text-center text-sm text-gray-500">
-//             Resend code in 00:59
-//           </p>
-//           <Button className="w-full bg-emerald-500 hover:bg-emerald-600">
-//             Verify & Proceed
-//           </Button>
-//           <div className="relative text-center text-sm py-2">
-//             <span className="bg-white px-2 text-gray-500">
-//               Or continue with
-//             </span>
-//           </div>
-//           <Button variant="outline" className="w-full">
-//             Google
-//           </Button>
-//           <div className="text-center text-sm text-gray-500 cursor-pointer hover:underline">
-//             ← Back
-//           </div>
-//         </CardContent>
-//       </Card>
-//     </div>
-//   );
-// }
