@@ -63,7 +63,7 @@ export default function Testimonials() {
 
               {/* Review */}
               <p className="text-[16px] text-gray-700 leading-8 h-[95px]">
-                "{item.review}"
+                &quot;{item.review}&quot;
               </p>
 
               {/* User */}

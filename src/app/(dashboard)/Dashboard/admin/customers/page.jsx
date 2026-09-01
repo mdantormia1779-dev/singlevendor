@@ -17,7 +17,7 @@ export default function AdminCustomersPage() {
     role: "customer",
   });
 
-  const fetchUsers = () => {
+  const loadUsers = () => {
     setLoading(true);
     fetch("/api/users")
       .then((res) => res.json())
@@ -31,7 +31,15 @@ export default function AdminCustomersPage() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetch("/api/users")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.users) {
+          setCustomers(data.users);
+        }
+      })
+      .catch((err) => console.error("Error fetching users:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   const filteredCustomers = customers.filter(
@@ -83,7 +91,7 @@ export default function AdminCustomersPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={fetchUsers}
+            onClick={loadUsers}
             className="inline-flex items-center gap-2 bg-white hover:bg-slate-100 text-slate-700 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition border border-slate-200 cursor-pointer"
           >
             <RefreshCw size={15} className={loading ? "animate-spin" : ""} /> Refresh

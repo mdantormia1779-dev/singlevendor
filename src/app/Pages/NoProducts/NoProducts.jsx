@@ -22,7 +22,7 @@ const NoProducts = ({ onReset }) => {
 
         {/* Subtitle */}
         <p className="mt-2.5 text-gray-500 text-sm sm:text-base">
-          We couldn't find matches for your search or active filters. Try adjusting your search query or reset filters.
+          We couldn&apos;t find matches for your search or active filters. Try adjusting your search query or reset filters.
         </p>
 
         {/* Button */}

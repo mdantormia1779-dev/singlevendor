@@ -7,17 +7,26 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
+    const userId = searchParams.get("userId") || "";
+    const phone = searchParams.get("phone") || "";
+    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")) : undefined;
 
     const where = {};
     if (search) {
       where.OR = [
-        { id: { contains: search } },
-        { customerName: { contains: search } },
-        { customerPhone: { contains: search } },
+        { id: { contains: search, mode: "insensitive" } },
+        { customerName: { contains: search, mode: "insensitive" } },
+        { customerPhone: { contains: search, mode: "insensitive" } },
       ];
     }
     if (status && status !== "All") {
-      where.status = status;
+      where.status = { equals: status, mode: "insensitive" };
+    }
+    if (userId) {
+      where.userId = userId;
+    }
+    if (phone) {
+      where.customerPhone = { contains: phone, mode: "insensitive" };
     }
 
     const orders = await prisma.order.findMany({
@@ -26,9 +35,27 @@ export async function GET(request) {
         products: true,
       },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
 
-    return NextResponse.json({ success: true, orders });
+    const mappedOrders = orders.map((o) => ({
+      ...o,
+      customer: {
+        name: o.customerName,
+        phone: o.customerPhone,
+        address: o.customerAddress,
+      },
+      date: new Date(o.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+      paymentDetails: o.paymentTrxId
+        ? { wallet: o.paymentWallet, trxId: o.paymentTrxId }
+        : null,
+    }));
+
+    return NextResponse.json({ success: true, count: mappedOrders.length, orders: mappedOrders });
   } catch (error) {
     console.error("GET /api/orders error:", error);
     return NextResponse.json({ success: false, error: "Failed to fetch orders" }, { status: 500 });

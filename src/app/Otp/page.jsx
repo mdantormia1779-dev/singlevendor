@@ -112,7 +112,7 @@ export default function OTPVerification() {
             </div>
 
             <div className="text-center text-xs text-gray-500 flex items-center justify-center gap-1">
-              <span>Didn't receive the code?</span>
+              <span>Didn&apos;t receive the code?</span>
               <button
                 type="button"
                 onClick={handleResend}

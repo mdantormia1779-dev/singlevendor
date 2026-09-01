@@ -1,35 +1,55 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, Suspense } from "react";
+import React, { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Card from "@/app/Components/Shared/Card/Card";
 import SidebarFilter from "@/app/Components/SidebarFilter/SidebarFilter";
 import NoProducts from "../NoProducts/NoProducts";
-import defaultProductsData from "@/app/data/data.json";
+import gsap from "gsap";
 
 function AllProductsContent() {
   const searchParams = useSearchParams();
   const urlSearch = searchParams.get("search") || "";
   const urlCategory = searchParams.get("category") || "";
 
-  const [products, setProducts] = useState(defaultProductsData);
+  const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const gridRef = useRef(null);
 
   // Fetch real products from Prisma API
   useEffect(() => {
     fetch("/api/products")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.products && data.products.length > 0) {
+        if (data.success && data.products) {
           setProducts(data.products);
         }
       })
-      .catch((err) => console.error("Prisma products fetch:", err))
+      .catch((err) => console.error("Prisma products fetch error:", err))
       .finally(() => setIsLoading(false));
   }, []);
 
+  // GSAP animations when products or filters change
+  useEffect(() => {
+    if (!isLoading && gridRef.current && gridRef.current.children.length > 0) {
+      gsap.fromTo(
+        gridRef.current.children,
+        { opacity: 0, y: 25, scale: 0.97 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.5,
+          stagger: 0.05,
+          ease: "power3.out",
+        }
+      );
+    }
+  }, [isLoading, products]);
+
   // Dynamic max price
   const MAX_PRICE = useMemo(() => {
+    if (products.length === 0) return 10000;
     const prices = products.map((p) => Number(p.price));
     return Math.max(...prices, 10000);
   }, [products]);
@@ -38,7 +58,7 @@ function AllProductsContent() {
   const categories = useMemo(() => {
     const counts = {};
     products.forEach((p) => {
-      const cat = p.category || p.specifications?.category || "Fashion";
+      const cat = p.category || "Fashion";
       counts[cat] = (counts[cat] || 0) + 1;
     });
     return Object.entries(counts).map(([name, count]) => ({ name, count }));
@@ -52,14 +72,6 @@ function AllProductsContent() {
   );
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [sortOption, setSortOption] = useState("popular");
-
-  // Sync URL search params
-  useEffect(() => {
-    if (urlSearch) setSearchTerm(urlSearch);
-    if (urlCategory && !selectedCategories.includes(urlCategory)) {
-      setSelectedCategories([urlCategory]);
-    }
-  }, [urlSearch, urlCategory]);
 
   // Handlers
   const handleCategoryToggle = (name) => {
@@ -87,13 +99,13 @@ function AllProductsContent() {
     return products.filter((p) => {
       const price = Number(p.price);
       const rating = parseFloat(p.rating || 0);
-      const prodCategory = p.category || p.specifications?.category || "Fashion";
+      const prodCategory = p.category || "Fashion";
 
       // Search match
       const matchesSearch =
         !searchTerm.trim() ||
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
         prodCategory.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Price match
@@ -128,11 +140,13 @@ function AllProductsContent() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900">
               All Products
             </h1>
             <p className="text-sm text-slate-500 mt-1">
-              {sortedProducts.length} {sortedProducts.length === 1 ? "product" : "products"} found from Prisma Catalog
+              {isLoading
+                ? "Loading products from database..."
+                : `${sortedProducts.length} ${sortedProducts.length === 1 ? "product" : "products"} available`}
             </p>
           </div>
 
@@ -172,10 +186,21 @@ function AllProductsContent() {
 
           {/* Product Grid Area */}
           <div className="grow w-full">
-            {sortedProducts.length === 0 ? (
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((n) => (
+                  <div key={n} className="bg-white rounded-2xl p-4 border border-gray-100 animate-pulse space-y-4">
+                    <div className="bg-gray-200 h-56 rounded-xl w-full" />
+                    <div className="h-4 bg-gray-200 rounded-md w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded-md w-1/2" />
+                    <div className="h-8 bg-gray-200 rounded-xl w-full" />
+                  </div>
+                ))}
+              </div>
+            ) : sortedProducts.length === 0 ? (
               <NoProducts onReset={handleClearAll} />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {sortedProducts.map((product) => (
                   <Card key={product.id} product={product} />
                 ))}

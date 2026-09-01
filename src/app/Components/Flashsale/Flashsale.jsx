@@ -1,16 +1,34 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Flame, Clock3 } from "lucide-react";
 import { motion } from "framer-motion";
-import products from "@/app/data/data.json";
 import FlashCard from "../Shared/FlashCard/FlashCard";
+import gsap from "gsap";
 
 const Flashsale = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [time, setTime] = useState({ hours: 12, minutes: 34, seconds: 53 });
-  const [isPaused, setIsPaused] = useState(false); // হোভার স্টেট ট্র্যাক করার জন্য
+  const [isPaused, setIsPaused] = useState(false);
+  const headerRef = useRef(null);
 
-  // টাইমার লজিক
+  // Fetch real products from API
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.products) {
+          // Prefer items with discount or all products
+          const discounted = data.products.filter((p) => p.discount || p.oldPrice);
+          setProducts(discounted.length > 0 ? discounted : data.products);
+        }
+      })
+      .catch((err) => console.error("Flashsale fetch error:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Timer logic
   useEffect(() => {
     const timer = setInterval(() => {
       setTime((prev) => {
@@ -30,26 +48,51 @@ const Flashsale = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // GSAP animation for header icon pulse
+  useEffect(() => {
+    if (headerRef.current) {
+      gsap.to(headerRef.current.querySelector(".flame-icon"), {
+        scale: 1.15,
+        repeat: -1,
+        yoyo: true,
+        duration: 0.8,
+        ease: "power1.inOut",
+      });
+    }
+  }, []);
+
+  if (loading || products.length === 0) {
+    return null;
+  }
+
+  // Duplicate for seamless infinite loop marquee
+  const marqueeItems = [...products, ...products];
+
   return (
-    <section className="pb-15">
-      <div className="max-w-7xl mx-auto bg-[#FFF5F4] rounded-3xl p-8 overflow-hidden">
+    <section className="pb-16">
+      <div className="max-w-7xl mx-auto bg-gradient-to-r from-[#FFF5F4] via-[#FFF9F8] to-[#FFF5F4] border border-red-100 rounded-3xl p-6 sm:p-8 overflow-hidden shadow-xs">
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
+        <div
+          ref={headerRef}
+          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10"
+        >
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-              <Flame className="text-red-500" />
+            <div className="flame-icon w-12 h-12 rounded-2xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-red-200">
+              <Flame size={26} />
             </div>
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold">Flash sale 🔥</h2>
-              <p className="text-gray-500 text-sm sm:text-base">
-                Buy before time runs out!
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Flash Sale 🔥
+              </h2>
+              <p className="text-gray-500 text-xs sm:text-base font-medium mt-0.5">
+                Limited-time deals from Finora catalog — grab before stock runs out!
               </p>
             </div>
           </div>
 
           {/* Timer Section */}
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <Clock3 className="text-red-500 hidden sm:block" />
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-start sm:justify-end">
+            <Clock3 className="text-red-500 hidden sm:block" size={20} />
             {[
               { value: time.hours, label: "Hours" },
               { value: time.minutes, label: "Mins" },
@@ -57,12 +100,12 @@ const Flashsale = () => {
             ].map((item) => (
               <div
                 key={item.label}
-                className="bg-red-500 text-white rounded-xl px-4 py-2 text-center min-w-17.5"
+                className="bg-red-500 text-white rounded-2xl px-3 sm:px-4 py-2 text-center min-w-16 sm:min-w-18 shadow-sm"
               >
-                <h3 className="text-2xl sm:text-3xl font-bold">
+                <h3 className="text-xl sm:text-2xl font-black font-mono">
                   {String(item.value).padStart(2, "0")}
                 </h3>
-                <p className="text-[10px] sm:text-xs uppercase tracking-wider">
+                <p className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider">
                   {item.label}
                 </p>
               </div>
@@ -73,23 +116,21 @@ const Flashsale = () => {
         {/* --- Infinite Marquee Section --- */}
         <div
           className="overflow-hidden relative w-full"
-          onMouseEnter={() => setIsPaused(true)} // মাউস ভেতরে আসলে স্টেট true হবে
-          onMouseLeave={() => setIsPaused(false)} // মাউস চলে গেলে স্টেট false হবে
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
         >
           <motion.div
             className="flex gap-6 w-max"
-            // যদি `isPaused` সত্য হয়, তবে অ্যানিমেশনটি থেমে থাকবে (paused), নাহলে চলবে (running)
             animate={isPaused ? { x: undefined } : { x: ["0%", "-50%"] }}
             style={{ animationPlayState: isPaused ? "paused" : "running" }}
             transition={{
-              duration: 25,
+              duration: 30,
               ease: "linear",
               repeat: Infinity,
             }}
           >
-            {/* ইনফিনিট লুপের জন্য ডেটা ২ বার ম্যাপ করা হয়েছে */}
-            {[...products, ...products].map((product, index) => (
-              <div key={index} className="shrink-0 w-80 py-2">
+            {marqueeItems.map((product, index) => (
+              <div key={`${product.id}-${index}`} className="shrink-0 w-72 sm:w-80 py-2">
                 <FlashCard product={product} />
               </div>
             ))}

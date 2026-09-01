@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Package, CheckCircle2, Clock, Heart, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,7 +11,8 @@ export default function DashboardHomePage() {
   const dispatch = useDispatch();
   const authUser = useSelector((state) => state.auth?.user);
   const wishlistItems = useSelector((state) => state.wishlist?.items) || [];
-  const reduxOrders = useSelector((state) => state.cart?.orders) || [];
+  const rawOrders = useSelector((state) => state.cart?.orders);
+  const reduxOrders = useMemo(() => rawOrders || [], [rawOrders]);
 
   const [dbOrders, setDbOrders] = useState([]);
   const [loading, setLoading] = useState(true);

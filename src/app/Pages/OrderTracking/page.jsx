@@ -1,124 +1,201 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, Suspense } from "react";
+import React, { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { loadStoredOrders } from "@/app/store/cartSlice";
+import { loadStoredOrders, updateOrderStatus } from "@/app/store/cartSlice";
 import {
-  Download,
   Truck,
   MapPin,
   Phone,
   CircleDollarSign,
-  Package,
   CheckCircle2,
   Clock3,
   Search,
-  ArrowRight,
-  AlertCircle,
   XCircle,
   Printer,
-  Sparkles,
-  ShoppingBag,
+  Loader2,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import gsap from "gsap";
+
+const CANCEL_REASONS = [
+  "Ordered by mistake / wrong items",
+  "Need to change delivery address or phone",
+  "Found a cheaper alternative",
+  "Delivery time is too long",
+  "Payment or billing issue",
+  "Other reason",
+];
 
 function OrderTrackingContent() {
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const initialOrderId = searchParams.get("orderId") || "";
 
-  const [mounted, setMounted] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
-  const [activeOrderId, setActiveOrderId] = useState("");
+  const [searchInput, setSearchInput] = useState(initialOrderId);
+  const [activeOrderId, setActiveOrderId] = useState(initialOrderId);
+  const [apiOrder, setApiOrder] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const reduxOrders = useSelector((state) => state.cart.orders) || [];
+  // Cancellation modal state
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [selectedReason, setSelectedReason] = useState(CANCEL_REASONS[0]);
+  const [customReason, setCustomReason] = useState("");
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  const trackingCardRef = useRef(null);
+  const rawOrders = useSelector((state) => state.cart.orders);
+  const reduxOrders = useMemo(() => rawOrders || [], [rawOrders]);
+
+  const fetchLiveOrder = async (idToFind, isUserAction = false) => {
+    if (!idToFind) return;
+    if (isUserAction) setIsSearching(true);
+    try {
+      const clean = idToFind.trim().replace(/^#/, "");
+      const res = await fetch(`/api/orders/${encodeURIComponent(clean)}`);
+      const data = await res.json();
+      if (data.success && data.order) {
+        setApiOrder(data.order);
+        setActiveOrderId(data.order.id);
+        if (isUserAction) toast.success(`Loaded live tracking for order ${data.order.id}! 🚚`);
+      } else {
+        // Try searching by query
+        const searchRes = await fetch(`/api/orders?search=${encodeURIComponent(clean)}`);
+        const searchData = await searchRes.json();
+        if (searchData.success && searchData.orders && searchData.orders.length > 0) {
+          setApiOrder(searchData.orders[0]);
+          setActiveOrderId(searchData.orders[0].id);
+          if (isUserAction) toast.success(`Found order ${searchData.orders[0].id}! 🚚`);
+        } else {
+          setApiOrder(null);
+          if (isUserAction) toast.warning(`Order "${idToFind}" not found in database.`);
+        }
+      }
+    } catch (err) {
+      console.error("Order tracking fetch error:", err);
+    } finally {
+      if (isUserAction) setIsSearching(false);
+    }
+  };
 
   useEffect(() => {
-    setMounted(true);
     dispatch(loadStoredOrders());
     if (initialOrderId) {
-      setSearchInput(initialOrderId);
-      setActiveOrderId(initialOrderId);
+      const clean = initialOrderId.trim().replace(/^#/, "");
+      fetch(`/api/orders/${encodeURIComponent(clean)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.order) {
+            setApiOrder(data.order);
+            setActiveOrderId(data.order.id);
+          }
+        })
+        .catch((err) => console.error("Initial order tracking fetch error:", err));
     }
   }, [initialOrderId, dispatch]);
 
-  // Find target order or default to the latest order in the system
-  const activeOrder = useMemo(() => {
+  // Find target order or default to apiOrder or reduxOrders[0]
+  const displayOrder = useMemo(() => {
+    if (apiOrder) return apiOrder;
+
     if (activeOrderId) {
       const clean = activeOrderId.trim().replace(/^#/, "").toLowerCase();
-      return (
-        reduxOrders.find(
-          (o) => o.id?.replace(/^#/, "").toLowerCase() === clean
-        ) || null
+      const foundInRedux = reduxOrders.find(
+        (o) => o.id?.replace(/^#/, "").toLowerCase() === clean
+      );
+      if (foundInRedux) return foundInRedux;
+    }
+
+    if (reduxOrders.length > 0) return reduxOrders[0];
+
+    return {
+      id: "#ORD-998241",
+      date: "May 28, 2026",
+      status: "Processing",
+      total: 3450,
+      subtotal: 3330,
+      deliveryFee: 120,
+      paymentMethod: "BKASH",
+      customer: {
+        name: "Tanvir Ahmed",
+        phone: "01711223344",
+        address: "House 24, Road 7, Banani, Dhaka, Bangladesh",
+      },
+      deliveryMethod: "Express (1-2 days)",
+      products: [
+        {
+          id: 1,
+          name: "Neptune Long-sleeve Shirt",
+          qty: 1,
+          price: 1450,
+          image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80",
+        },
+      ],
+    };
+  }, [apiOrder, activeOrderId, reduxOrders]);
+
+  // GSAP animation when order changes
+  useEffect(() => {
+    if (trackingCardRef.current) {
+      gsap.fromTo(
+        trackingCardRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }
       );
     }
-    return reduxOrders.length > 0 ? reduxOrders[0] : null;
-  }, [reduxOrders, activeOrderId]);
+  }, [displayOrder]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (!searchInput.trim()) {
-      toast.info("Please enter an Order ID (e.g. ORD-998241 or 998241)");
+      toast.info("Please enter an Order ID or Phone number.");
       return;
     }
-    const clean = searchInput.trim().replace(/^#/, "").toLowerCase();
-    const found = reduxOrders.find(
-      (o) => o.id?.replace(/^#/, "").toLowerCase() === clean
-    );
+    fetchLiveOrder(searchInput.trim(), true);
+  };
 
-    if (found) {
-      setActiveOrderId(found.id);
-      toast.success(`Found order ${found.id}! Live status loaded.`);
-    } else {
-      setActiveOrderId(searchInput.trim());
-      toast.warning(`Order "${searchInput}" not found. Showing sample live preview.`);
+  const handleCancelOrder = async () => {
+    if (!displayOrder?.id) return;
+    setIsCancelling(true);
+
+    const orderId = displayOrder.id;
+    const finalReason = selectedReason === "Other reason" && customReason.trim() ? customReason.trim() : selectedReason;
+
+    try {
+      const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "Cancelled",
+          cancelReason: finalReason,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setApiOrder((prev) => (prev ? { ...prev, status: "Cancelled" } : null));
+        dispatch(updateOrderStatus({ orderId, status: "Cancelled" }));
+        toast.success(`Order ${orderId} has been cancelled.`);
+        setIsCancelModalOpen(false);
+      } else {
+        toast.error("Failed to cancel order in database.");
+      }
+    } catch (err) {
+      console.error("Cancel order error:", err);
+      toast.error("Network error cancelling order.");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
-  const handlePrintInvoice = () => {
-    window.print();
-  };
+  const currentStatus = displayOrder?.status || "Pending";
+  const isCancellable = currentStatus === "Pending" || currentStatus === "Confirmed";
 
-  // Fallback demo order if user hasn't made any purchases yet
-  const displayOrder = activeOrder || {
-    id: "#ORD-998241",
-    date: "May 28, 2026",
-    status: "Processing",
-    total: 3450,
-    subtotal: 3330,
-    deliveryFee: 120,
-    paymentMethod: "BKASH",
-    paymentDetails: { wallet: "01711223344", trxId: "8HJ290X" },
-    customer: {
-      name: "Tanvir Ahmed",
-      phone: "01711223344",
-      address: "House 24, Road 7, Banani, Dhaka, Bangladesh",
-    },
-    deliveryMethod: "Express (1-2 days)",
-    products: [
-      {
-        id: 1,
-        name: "Neptune Long-sleeve Shirt",
-        qty: 1,
-        price: 1450,
-        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80",
-      },
-      {
-        id: 2,
-        name: "Corduroy Slim-fit Pant",
-        qty: 1,
-        price: 2000,
-        image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=500&q=80",
-      },
-    ],
-  };
-
-  const currentStatus = displayOrder.status || "Pending";
-
-  // Calculate dynamic steps based on current status set by admin
   const getStepActive = (stepName) => {
     if (currentStatus === "Cancelled") return false;
     const orderLevels = {
@@ -136,60 +213,50 @@ function OrderTrackingContent() {
     {
       step: "Pending",
       title: "1. Order Received",
-      desc: "Your order has been placed into the queue and is pending verification.",
+      desc: "Your order is queued in the database and pending fulfillment.",
       time: `${displayOrder.date || "Recent"} • Instant`,
       active: getStepActive("Pending"),
     },
     {
       step: "Confirmed",
       title: "2. Order Confirmed & Verified",
-      desc: "Merchant verified payment and reserved items in the fulfillment center.",
+      desc: "Payment verified and inventory allocated in warehouse.",
       time: `${displayOrder.date || "Recent"} • Verified`,
       active: getStepActive("Confirmed"),
     },
     {
       step: "Processing",
       title: "3. Packaging & Courier Dispatch",
-      desc: "Quality inspection passed and parcel handed to delivery partner.",
-      time: "In Transit with Rider",
+      desc: "Quality inspection passed and parcel handed to delivery rider.",
+      time: "In Transit with Courier",
       active: getStepActive("Processing"),
     },
     {
       step: "Delivered",
       title: "4. Delivered & Completed",
       desc: "Parcel safely delivered to recipient's doorstep.",
-      time: currentStatus === "Delivered" ? "Delivered to Customer" : "Expected in 1-2 days",
+      time: currentStatus === "Delivered" ? "Delivered to Customer" : "Estimated in 1-2 days",
       active: getStepActive("Delivered"),
     },
   ];
 
-  if (!mounted) {
-    return (
-      <div className="bg-slate-50 min-h-screen py-16 flex items-center justify-center">
-        <div className="text-center text-slate-500 font-medium text-sm">
-          Loading live tracking details...
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <section className="bg-slate-50 min-h-screen py-10 px-4 sm:px-6">
+    <section className="bg-slate-50 min-h-screen py-10 px-4 sm:px-6 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header with Search and Actions */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
           <div>
             <div className="flex items-center gap-2">
               <span className="bg-emerald-50 text-emerald-700 text-xs font-extrabold px-3 py-1 rounded-full border border-emerald-200">
-                Live Status Tracker
+                Live PostgreSQL Tracker
               </span>
-              <span className="text-xs text-gray-400 font-medium">Real-time Admin Sync</span>
+              <span className="text-xs text-gray-400 font-medium">Synced with Admin Dashboard</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-2 tracking-tight">
               Order Tracking: <span className="text-emerald-600 font-mono">{displayOrder.id}</span>
             </h1>
             <p className="text-gray-500 mt-1 text-xs sm:text-sm">
-              Live updates direct from Finora fulfillment network
+              Real-time fulfillment updates direct from Finora database
             </p>
           </div>
 
@@ -199,54 +266,33 @@ function OrderTrackingContent() {
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Enter Order ID (e.g. ORD-998241)..."
+                  placeholder="Enter Order ID or Phone..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pl-10 pr-3 py-2.5 rounded-2xl border border-slate-200 bg-slate-50/50 text-xs font-mono outline-none focus:bg-white focus:border-emerald-500 w-full sm:w-64"
+                  className="pl-10 pr-3 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-mono outline-none focus:bg-white focus:border-emerald-500 w-full sm:w-64"
                 />
               </div>
               <button
                 type="submit"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-2xl text-xs font-bold cursor-pointer transition shadow-xs"
+                disabled={isSearching}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-2xl text-xs font-bold cursor-pointer transition shadow-xs flex items-center gap-1.5"
               >
-                Track
+                {isSearching && <Loader2 size={14} className="animate-spin" />}
+                <span>Track</span>
               </button>
             </form>
 
             <button
-              onClick={handlePrintInvoice}
+              onClick={() => window.print()}
               className="border border-slate-200 rounded-2xl px-4 py-2.5 flex items-center justify-center gap-2 text-xs font-bold hover:bg-slate-50 bg-white cursor-pointer transition"
             >
               <Printer size={15} />
-              Print Receipt
+              Print
             </button>
           </div>
         </div>
 
-        {/* Quick Order Selector (if multiple orders exist) */}
-        {reduxOrders.length > 1 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider shrink-0">Switch Order:</span>
-            {reduxOrders.slice(0, 6).map((ord) => (
-              <button
-                key={ord.id}
-                onClick={() => {
-                  setActiveOrderId(ord.id);
-                  setSearchInput(ord.id);
-                }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition cursor-pointer shrink-0 border ${
-                  displayOrder.id === ord.id
-                    ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
-                    : "bg-white text-gray-700 border-slate-200 hover:bg-slate-100"
-                }`}
-              >
-                {ord.id} ({ord.status})
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div ref={trackingCardRef} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Left Column: Status Banner & Dynamic Timeline */}
           <div className="lg:col-span-2 space-y-6">
             {/* Dynamic Status Banner */}
@@ -258,7 +304,7 @@ function OrderTrackingContent() {
                 <div>
                   <h3 className="font-extrabold text-lg">This order has been Cancelled</h3>
                   <p className="text-xs text-rose-700 mt-0.5">
-                    The order was cancelled by the store administrator. Please reach out to customer support if you need assistance.
+                    The order was cancelled. Please reach out to customer support if you need further assistance.
                   </p>
                 </div>
               </div>
@@ -270,7 +316,7 @@ function OrderTrackingContent() {
                 <div>
                   <h3 className="font-extrabold text-lg">Delivered Successfully! 🎉</h3>
                   <p className="text-xs text-emerald-100 mt-0.5">
-                    Package was delivered and signed by the recipient. Thank you for shopping with Finora!
+                    Package was delivered and verified. Thank you for shopping with Finora!
                   </p>
                   <span className="text-[11px] mt-2 inline-block bg-white/20 font-bold px-3 py-0.5 rounded-full">
                     Status: Delivered
@@ -374,7 +420,6 @@ function OrderTrackingContent() {
                         <Image
                           src={
                             prod.image ||
-                            prod.images?.[0] ||
                             "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80"
                           }
                           alt={prod.name || "Product"}
@@ -422,8 +467,12 @@ function OrderTrackingContent() {
                   <p className="font-bold text-gray-900 mb-0.5">
                     Shipping Address
                   </p>
-                  <p className="font-semibold text-gray-800">{displayOrder.customer?.name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{displayOrder.customer?.address}</p>
+                  <p className="font-semibold text-gray-800">
+                    {displayOrder.customer?.name || displayOrder.customerName}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {displayOrder.customer?.address || displayOrder.customerAddress || "Dhaka, Bangladesh"}
+                  </p>
                 </div>
               </div>
 
@@ -435,7 +484,9 @@ function OrderTrackingContent() {
                   <p className="font-bold text-gray-900 mb-0.5">
                     Contact Phone
                   </p>
-                  <p className="text-gray-600 font-mono">{displayOrder.customer?.phone || "+880 1577147480"}</p>
+                  <p className="text-gray-600 font-mono">
+                    {displayOrder.customer?.phone || displayOrder.customerPhone || "+880 1577147480"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -448,7 +499,9 @@ function OrderTrackingContent() {
 
               <div className="flex justify-between text-gray-600 text-xs">
                 <span>Subtotal</span>
-                <span className="font-bold text-gray-900">৳{displayOrder.subtotal?.toLocaleString() || displayOrder.total?.toLocaleString()}</span>
+                <span className="font-bold text-gray-900">
+                  ৳{Number(displayOrder.subtotal || displayOrder.total || 0).toLocaleString()}
+                </span>
               </div>
 
               <div className="flex justify-between text-gray-600 text-xs">
@@ -461,18 +514,120 @@ function OrderTrackingContent() {
               <div className="flex justify-between font-extrabold text-base text-gray-900">
                 <span>Grand Total</span>
                 <span className="text-emerald-600 text-lg">
-                  ৳{displayOrder.total?.toLocaleString()}
+                  ৳{Number(displayOrder.total || 0).toLocaleString()}
                 </span>
               </div>
 
               <div className="flex items-center gap-2 pt-2 text-xs text-gray-500 font-medium">
                 <CircleDollarSign className="text-emerald-600" size={16} />
-                <span>Payment Method: <strong className="uppercase text-gray-900">{displayOrder.paymentMethod}</strong></span>
+                <span>
+                  Payment Method: <strong className="uppercase text-gray-900">{displayOrder.paymentMethod}</strong>
+                </span>
               </div>
+
+              {/* Cancel Order Action (if eligible) */}
+              {isCancellable && (
+                <div className="pt-3 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      setIsCancelModalOpen(true);
+                      setSelectedReason(CANCEL_REASONS[0]);
+                      setCustomReason("");
+                    }}
+                    className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <XCircle size={15} />
+                    <span>Cancel This Order</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Cancel Order Modal */}
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 font-sans">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl relative">
+            <button
+              onClick={() => setIsCancelModalOpen(false)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-gray-900">Cancel Order {displayOrder.id}?</h3>
+                <p className="text-xs text-gray-500">Please choose why you want to cancel this order</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 my-6">
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-2">Select Reason</label>
+                <div className="space-y-2">
+                  {CANCEL_REASONS.map((r, idx) => (
+                    <label
+                      key={idx}
+                      className={`flex items-center gap-3 p-3 rounded-2xl border text-xs font-semibold cursor-pointer transition ${
+                        selectedReason === r
+                          ? "border-rose-500 bg-rose-50/40 text-rose-900"
+                          : "border-gray-200 hover:bg-gray-50 text-gray-700"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="cancelReasonTrack"
+                        checked={selectedReason === r}
+                        onChange={() => setSelectedReason(r)}
+                        className="accent-rose-600"
+                      />
+                      <span>{r}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {selectedReason === "Other reason" && (
+                <div>
+                  <label className="text-xs font-bold text-gray-700 block mb-1">Additional details</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Tell us why you want to cancel..."
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-3 text-xs focus:outline-none focus:border-rose-500 resize-none"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsCancelModalOpen(false)}
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-xs transition cursor-pointer"
+              >
+                Keep Order
+              </button>
+              <button
+                type="button"
+                disabled={isCancelling}
+                onClick={handleCancelOrder}
+                className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition cursor-pointer flex items-center justify-center gap-2"
+              >
+                {isCancelling && <Loader2 size={15} className="animate-spin" />}
+                <span>{isCancelling ? "Cancelling..." : "Confirm Cancellation"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

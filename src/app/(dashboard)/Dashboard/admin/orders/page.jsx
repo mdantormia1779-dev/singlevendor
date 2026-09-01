@@ -1,62 +1,125 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { updateOrderStatus } from "@/app/store/cartSlice";
 import {
   Search,
-  Filter,
   Eye,
-  CheckCircle,
-  Clock,
-  Truck,
-  XCircle,
+  Trash2,
   Printer,
-  ChevronDown,
-  Download,
-  AlertCircle,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import Image from "next/image";
+import gsap from "gsap";
 
 export default function AdminOrdersPage() {
   const dispatch = useDispatch();
-  const reduxOrders = useSelector((state) => state.cart.orders) || [];
-
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const tableRef = useRef(null);
+
+  // Fetch real orders from database API
+  const fetchOrders = () => {
+    setLoading(true);
+    fetch("/api/orders")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.orders) {
+          setOrders(data.orders);
+        }
+      })
+      .catch((err) => console.error("Orders fetch error:", err))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetch("/api/orders")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.orders) {
+          setOrders(data.orders);
+        }
+      })
+      .catch((err) => console.error("Orders fetch error:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // GSAP animation
+  useEffect(() => {
+    if (!loading && tableRef.current && tableRef.current.children.length > 0) {
+      gsap.fromTo(
+        tableRef.current.children,
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.35, stagger: 0.04, ease: "power2.out" }
+      );
+    }
+  }, [loading, orders]);
 
   // Filtered orders
   const filteredOrders = useMemo(() => {
-    return reduxOrders.filter((ord) => {
-      const matchesSearch =
-        ord.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (ord.customer?.name && ord.customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (ord.customer?.phone && ord.customer.phone.includes(searchTerm));
+    return orders.filter((ord) => {
+      const idMatch = (ord.id || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const nameMatch = (ord.customer?.name || ord.customerName || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const phoneMatch = (ord.customer?.phone || ord.customerPhone || "").includes(searchTerm);
 
-      const matchesStatus = statusFilter === "All" || ord.status.toLowerCase() === statusFilter.toLowerCase();
+      const matchesSearch = !searchTerm || idMatch || nameMatch || phoneMatch;
+      const matchesStatus = statusFilter === "All" || (ord.status || "").toLowerCase() === statusFilter.toLowerCase();
 
       return matchesSearch && matchesStatus;
     });
-  }, [reduxOrders, searchTerm, statusFilter]);
+  }, [orders, searchTerm, statusFilter]);
 
-  const handleUpdateStatus = (orderId, newStatus) => {
-    dispatch(updateOrderStatus({ orderId, status: newStatus }));
-
+  const handleUpdateStatus = async (orderId, newStatus) => {
+    // Optimistic update
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+    );
     if (selectedOrder && selectedOrder.id === orderId) {
       setSelectedOrder((prev) => ({ ...prev, status: newStatus }));
     }
+    dispatch(updateOrderStatus({ orderId, status: newStatus }));
 
-    // Persist to Prisma Database
-    fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    }).catch((err) => console.error("Prisma status update error:", err));
+    try {
+      const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Order ${orderId} updated to "${newStatus}"!`);
+      } else {
+        toast.error("Failed to persist order status.");
+      }
+    } catch (err) {
+      console.error("Status update error:", err);
+      toast.error("Network error updating status.");
+    }
+  };
 
-    toast.success(`Order ${orderId} updated to "${newStatus}"! Status is now live on tracking.`);
+  const handleDeleteOrder = async (orderId) => {
+    if (!confirm(`Are you sure you want to delete order ${orderId}?`)) return;
+
+    try {
+      const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders((prev) => prev.filter((o) => o.id !== orderId));
+        if (selectedOrder && selectedOrder.id === orderId) setSelectedOrder(null);
+        toast.success(`Order ${orderId} deleted successfully.`);
+      }
+    } catch (err) {
+      console.error("Delete order error:", err);
+      toast.error("Failed to delete order.");
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -76,7 +139,7 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-8 bg-gray-50 min-h-screen font-sans">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
@@ -84,12 +147,18 @@ export default function AdminOrdersPage() {
             Order Management & Live Tracking Sync
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Status changes made here instantly reflect on the customer's live Order Tracking page
+            Status changes made here instantly reflect on the customer&apos;s live Order Tracking page &amp; PostgreSQL database
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="bg-emerald-50 text-emerald-700 font-bold px-3.5 py-1.5 rounded-full text-xs border border-emerald-200">
-            Total Orders: {reduxOrders.length}
+          <button
+            onClick={fetchOrders}
+            className="flex items-center gap-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl text-xs transition cursor-pointer shadow-xs"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+          </button>
+          <span className="bg-emerald-50 text-emerald-700 font-bold px-3.5 py-2 rounded-xl text-xs border border-emerald-200">
+            Total Orders: {orders.length}
           </span>
         </div>
       </div>
@@ -104,7 +173,7 @@ export default function AdminOrdersPage() {
             placeholder="Search by Order ID, Name, or Phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-50 pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-500"
+            className="w-full bg-gray-50 pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
           />
         </div>
 
@@ -141,8 +210,14 @@ export default function AdminOrdersPage() {
                 <th className="py-4 px-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-sm">
-              {filteredOrders.length === 0 ? (
+            <tbody ref={tableRef} className="divide-y divide-gray-100 text-sm">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-gray-500">
+                    Loading orders from database...
+                  </td>
+                </tr>
+              ) : filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-gray-500">
                     No orders found matching your criteria.
@@ -155,12 +230,12 @@ export default function AdminOrdersPage() {
                       {ord.id}
                     </td>
                     <td className="py-4 px-6">
-                      <div className="font-bold text-gray-900">{ord.customer?.name || "Customer"}</div>
-                      <div className="text-xs text-gray-500 font-mono">{ord.customer?.phone || "N/A"}</div>
+                      <div className="font-bold text-gray-900">{ord.customer?.name || ord.customerName}</div>
+                      <div className="text-xs text-gray-500 font-mono">{ord.customer?.phone || ord.customerPhone || "N/A"}</div>
                     </td>
                     <td className="py-4 px-4 text-xs text-gray-600">{ord.date}</td>
                     <td className="py-4 px-4 font-bold text-emerald-700">
-                      ৳{ord.total?.toLocaleString()}
+                      ৳{Number(ord.total || 0).toLocaleString()}
                     </td>
                     <td className="py-4 px-4">
                       <span className="text-xs font-semibold uppercase bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md">
@@ -182,12 +257,19 @@ export default function AdminOrdersPage() {
                         <option value="Cancelled">Cancelled</option>
                       </select>
                     </td>
-                    <td className="py-4 px-6 text-right">
+                    <td className="py-4 px-6 text-right space-x-2">
                       <button
                         onClick={() => setSelectedOrder(ord)}
                         className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer"
                       >
-                        <Eye size={15} /> View Details
+                        <Eye size={14} /> View
+                      </button>
+                      <button
+                        onClick={() => handleDeleteOrder(ord.id)}
+                        className="inline-flex items-center bg-gray-100 hover:bg-rose-50 hover:text-rose-700 text-gray-500 p-1.5 rounded-xl transition cursor-pointer"
+                        title="Delete Order"
+                      >
+                        <Trash2 size={14} />
                       </button>
                     </td>
                   </tr>
@@ -227,13 +309,13 @@ export default function AdminOrdersPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl mb-6 text-xs">
               <div>
                 <p className="text-gray-500 font-medium">Customer Name</p>
-                <p className="font-bold text-gray-900 text-sm mt-0.5">{selectedOrder.customer?.name}</p>
-                <p className="text-gray-600 mt-1 font-mono">{selectedOrder.customer?.phone}</p>
+                <p className="font-bold text-gray-900 text-sm mt-0.5">{selectedOrder.customer?.name || selectedOrder.customerName}</p>
+                <p className="text-gray-600 mt-1 font-mono">{selectedOrder.customer?.phone || selectedOrder.customerPhone}</p>
               </div>
               <div>
                 <p className="text-gray-500 font-medium">Shipping Address</p>
                 <p className="font-semibold text-gray-800 mt-0.5 leading-relaxed">
-                  {selectedOrder.customer?.address || "Address details"}
+                  {selectedOrder.customer?.address || selectedOrder.customerAddress || "Address details"}
                 </p>
               </div>
               <div>
@@ -249,7 +331,7 @@ export default function AdminOrdersPage() {
               </div>
               <div>
                 <p className="text-gray-500 font-medium">Delivery Method</p>
-                <p className="font-bold text-gray-900 mt-0.5">{selectedOrder.deliveryMethod || "Express"}</p>
+                <p className="font-bold text-gray-900 mt-0.5">{selectedOrder.deliveryMethod || "Express (1-2 days)"}</p>
               </div>
             </div>
 
@@ -260,11 +342,17 @@ export default function AdminOrdersPage() {
                 <div key={idx} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="relative w-12 h-12 rounded-lg bg-gray-100 overflow-hidden shrink-0">
-                      <Image src={item.image} alt={item.name} fill sizes="48px" className="object-cover" />
+                      <Image
+                        src={item.image || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80"}
+                        alt={item.name}
+                        fill
+                        sizes="48px"
+                        className="object-cover"
+                      />
                     </div>
                     <div>
                       <p className="text-xs font-bold text-gray-900">{item.name}</p>
-                      <p className="text-[11px] text-gray-500">Qty: {item.qty} × ৳{item.price?.toLocaleString()}</p>
+                      <p className="text-[11px] text-gray-500">Qty: {item.qty} × ৳{Number(item.price || 0).toLocaleString()}</p>
                     </div>
                   </div>
                   <span className="font-bold text-xs text-gray-900">
@@ -278,7 +366,7 @@ export default function AdminOrdersPage() {
             <div className="border-t border-gray-100 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
                 <span className="text-xs text-gray-500">Grand Total Amount</span>
-                <p className="text-2xl font-extrabold text-emerald-700">৳{selectedOrder.total?.toLocaleString()}</p>
+                <p className="text-2xl font-extrabold text-emerald-700">৳{Number(selectedOrder.total || 0).toLocaleString()}</p>
               </div>
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <button

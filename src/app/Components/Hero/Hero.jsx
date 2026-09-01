@@ -173,6 +173,7 @@ const Hero = () => {
                       : "opacity-0 scale-105"
                   }`}
                   priority={index === 0}
+                  loading={index === 0 ? "eager" : undefined}
                 />
               ))}
 

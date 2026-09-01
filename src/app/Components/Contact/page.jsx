@@ -87,7 +87,7 @@ const ContactPage = ({
               <h2 className="font-extrabold text-gray-900 text-base">
                 1. Contact Person
               </h2>
-              <p className="text-xs text-gray-500">Receiver's name and direct contact mobile number</p>
+              <p className="text-xs text-gray-500">Receiver&apos;s name and direct contact mobile number</p>
             </div>
           </div>
           <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/70 px-2.5 py-1 rounded-full">

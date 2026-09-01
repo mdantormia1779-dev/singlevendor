@@ -7,27 +7,41 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const category = searchParams.get("category") || "";
+    const sort = searchParams.get("sort") || "";
+    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")) : undefined;
+    const featured = searchParams.get("featured");
 
     const where = {};
     if (search) {
-      where.title = { contains: search };
+      where.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { category: { contains: search, mode: "insensitive" } },
+      ];
     }
     if (category && category !== "All") {
-      where.category = { contains: category };
+      where.category = { contains: category, mode: "insensitive" };
     }
+
+    let orderBy = { id: "asc" };
+    if (sort === "price-low") orderBy = { price: "asc" };
+    else if (sort === "price-high") orderBy = { price: "desc" };
+    else if (sort === "rating") orderBy = { rating: "desc" };
+    else if (sort === "newest") orderBy = { createdAt: "desc" };
 
     const products = await prisma.product.findMany({
       where,
-      orderBy: { id: "asc" },
+      orderBy,
+      take: limit,
     });
 
     const parsedProducts = products.map((p) => ({
       ...p,
-      images: p.images ? JSON.parse(p.images) : [],
-      features: p.features ? JSON.parse(p.features) : [],
+      images: p.images ? (typeof p.images === "string" ? JSON.parse(p.images) : p.images) : [],
+      features: p.features ? (typeof p.features === "string" ? JSON.parse(p.features) : p.features) : [],
     }));
 
-    return NextResponse.json({ success: true, products: parsedProducts });
+    return NextResponse.json({ success: true, count: parsedProducts.length, products: parsedProducts });
   } catch (error) {
     console.error("GET /api/products error:", error);
     return NextResponse.json(

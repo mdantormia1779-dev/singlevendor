@@ -1,26 +1,54 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import Card from "@/app/Components/Shared/Card/Card";
 import SidebarFilter from "@/app/Components/SidebarFilter/SidebarFilter";
 import NoProducts from "../NoProducts/NoProducts";
-import productsData from "@/app/data/data.json";
+import gsap from "gsap";
 
-const SHOES_KEYWORDS = ["Shoe", "Footwear", "Sneaker", "Boot", "Loafer", "Sandal"];
+const SHOES_KEYWORDS = ["Shoe", "Sneaker", "Boot", "Loafer", "Sandal", "Footwear", "Men's Shoes", "Run"];
 
 export default function MenShoesPage() {
-  const categoryProducts = useMemo(() => {
-    return productsData.filter((p) => {
-      const cat = p.specifications?.category || "";
-      return SHOES_KEYWORDS.some(
-        (kw) => cat.toLowerCase().includes(kw.toLowerCase()) || p.title.toLowerCase().includes(kw.toLowerCase())
-      );
-    });
+  const [allProducts, setAllProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const gridRef = useRef(null);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.products) {
+          setAllProducts(data.products);
+        }
+      })
+      .catch((err) => console.error("Men's Shoes fetch error:", err))
+      .finally(() => setLoading(false));
   }, []);
 
-  const baseList = categoryProducts.length > 0 ? categoryProducts : productsData.slice(1, 8);
+  const baseList = useMemo(() => {
+    const matched = allProducts.filter((p) => {
+      const cat = (p.category || "").toLowerCase();
+      const title = (p.title || "").toLowerCase();
+      return SHOES_KEYWORDS.some(
+        (kw) => cat.includes(kw.toLowerCase()) || title.includes(kw.toLowerCase())
+      );
+    });
+    return matched.length > 0 ? matched : allProducts.slice(0, 6);
+  }, [allProducts]);
+
+  // GSAP animation
+  useEffect(() => {
+    if (!loading && gridRef.current && gridRef.current.children.length > 0) {
+      gsap.fromTo(
+        gridRef.current.children,
+        { opacity: 0, y: 25, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06, ease: "power3.out" }
+      );
+    }
+  }, [loading, baseList]);
 
   const MAX_PRICE = useMemo(() => {
+    if (baseList.length === 0) return 10000;
     const prices = baseList.map((p) => Number(p.price));
     return Math.max(...prices, 10000);
   }, [baseList]);
@@ -28,7 +56,7 @@ export default function MenShoesPage() {
   const categories = useMemo(() => {
     const counts = {};
     baseList.forEach((p) => {
-      const cat = p.specifications?.category || "Men's Shoes";
+      const cat = p.category || "Men's Shoes";
       counts[cat] = (counts[cat] || 0) + 1;
     });
     return Object.entries(counts).map(([name, count]) => ({ name, count }));
@@ -68,12 +96,12 @@ export default function MenShoesPage() {
       const matchesSearch =
         !searchTerm.trim() ||
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchesPrice = price <= priceDraft;
       const matchesCategory =
         selectedCategories.length === 0 ||
-        selectedCategories.includes(p.specifications?.category);
+        selectedCategories.includes(p.category);
       const matchesRating =
         selectedRatings.length === 0 ||
         selectedRatings.some((minRating) => rating >= minRating);
@@ -95,20 +123,20 @@ export default function MenShoesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900">
-              Men's Shoes
+            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900">
+              Men&apos;s Shoes
             </h1>
             <p className="text-sm text-slate-500 mt-1">
-              {sortedProducts.length} {sortedProducts.length === 1 ? "product" : "products"} found
+              {loading ? "Loading shoes catalog..." : `${sortedProducts.length} items found`}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500 font-medium">Sort by:</span>
+            <span className="text-xs text-gray-500 font-medium">Sort by:</span>
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value)}
-              className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium shadow-xs focus:outline-none focus:ring-2 focus:ring-[#10b981] cursor-pointer"
+              className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold shadow-xs focus:outline-none focus:border-emerald-500 cursor-pointer"
             >
               <option value="popular">Popular</option>
               <option value="price-low">Price: Low to High</option>
@@ -119,25 +147,33 @@ export default function MenShoesPage() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          <SidebarFilter
-            categories={categories}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            maxPrice={MAX_PRICE}
-            priceDraft={priceDraft}
-            onPriceChange={setPriceDraft}
-            onPriceReset={() => setPriceDraft(MAX_PRICE)}
-            selectedCategories={selectedCategories}
-            onCategoryToggle={handleCategoryToggle}
-            selectedRatings={selectedRatings}
-            onRatingToggle={handleRatingToggle}
-            onApply={() => {}}
-            onClear={handleClearAll}
-          />
+          <div className="w-full lg:w-72 shrink-0">
+            <SidebarFilter
+              categories={categories}
+              selectedCategories={selectedCategories}
+              onCategoryToggle={handleCategoryToggle}
+              priceValue={priceDraft}
+              onPriceChange={setPriceDraft}
+              maxPrice={MAX_PRICE}
+              selectedRatings={selectedRatings}
+              onRatingToggle={handleRatingToggle}
+              onClearAll={handleClearAll}
+            />
+          </div>
 
-          <div className="flex-1 w-full">
-            {sortedProducts.length > 0 ? (
+          <div className="grow w-full">
+            {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 animate-pulse space-y-4">
+                    <div className="bg-gray-200 h-56 rounded-xl w-full" />
+                    <div className="h-4 bg-gray-200 rounded-md w-3/4" />
+                    <div className="h-8 bg-gray-200 rounded-xl w-full" />
+                  </div>
+                ))}
+              </div>
+            ) : sortedProducts.length > 0 ? (
+              <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {sortedProducts.map((product) => (
                   <Card key={product.id} product={product} />
                 ))}
@@ -150,4 +186,4 @@ export default function MenShoesPage() {
       </div>
     </div>
   );
-}
+}

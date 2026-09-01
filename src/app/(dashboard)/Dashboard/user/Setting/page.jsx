@@ -16,14 +16,6 @@ const ProfileSettings = () => {
   const [email, setEmail] = useState(authUser?.email || "customer@finora.com");
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (authUser) {
-      if (authUser.name) setName(authUser.name);
-      if (authUser.phone) setPhone(authUser.phone);
-      if (authUser.email) setEmail(authUser.email);
-    }
-  }, [authUser]);
-
   const handleSave = (e) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) {

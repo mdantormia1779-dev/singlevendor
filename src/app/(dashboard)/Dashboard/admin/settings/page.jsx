@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import { Settings, Store, CreditCard, Bell, Shield, Save, Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Store, CreditCard, Bell, Save, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function AdminSettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [activeTab, setActiveTab] = useState("general");
 
   const [storeSettings, setStoreSettings] = useState({
@@ -23,24 +24,77 @@ export default function AdminSettingsPage() {
     smsAlerts: true,
   });
 
-  const handleSave = (e) => {
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.setting) {
+          setStoreSettings((prev) => ({
+            ...prev,
+            ...data.setting,
+            standardDeliveryFee: String(data.setting.standardDeliveryFee ?? 60),
+            expressDeliveryFee: String(data.setting.expressDeliveryFee ?? 120),
+            freeDeliveryThreshold: String(data.setting.freeDeliveryThreshold ?? 1000),
+          }));
+        }
+      })
+      .catch((err) => console.error("Settings fetch error:", err))
+      .finally(() => setFetching(false));
+  }, []);
+
+  const handleSave = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeName: storeSettings.storeName,
+          supportEmail: storeSettings.supportEmail,
+          contactPhone: storeSettings.contactPhone,
+          address: storeSettings.address,
+          currency: storeSettings.currency,
+          standardDeliveryFee: parseFloat(storeSettings.standardDeliveryFee) || 60,
+          expressDeliveryFee: parseFloat(storeSettings.expressDeliveryFee) || 120,
+          freeDeliveryThreshold: parseFloat(storeSettings.freeDeliveryThreshold) || 1000,
+          bkashMerchant: storeSettings.bkashMerchant,
+          nagadMerchant: storeSettings.nagadMerchant,
+          orderNotificationEmail: storeSettings.orderNotificationEmail,
+          smsAlerts: storeSettings.smsAlerts,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Store settings saved to database! ✅");
+      } else {
+        toast.error("Failed to save settings.");
+      }
+    } catch (err) {
+      console.error("Settings save error:", err);
+      toast.error("Network error while saving settings.");
+    } finally {
       setIsLoading(false);
-      toast.success("Store settings updated successfully! ✅");
-    }, 600);
+    }
   };
 
+  if (fetching) {
+    return (
+      <div className="p-8 text-center text-slate-500 font-medium">
+        Loading settings from database...
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-8 bg-gray-50 min-h-screen font-sans">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
           Store Settings
         </h1>
         <p className="text-xs sm:text-sm text-gray-500 mt-1">
-          Configure payment methods, delivery charges, general metadata, and automated alerts
+          Configure payment methods, delivery charges, general metadata, and automated alerts synced with PostgreSQL
         </p>
       </div>
 

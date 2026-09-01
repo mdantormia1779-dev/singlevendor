@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 
 import { Button } from "@/components/ui/button";
-import { Heart, Minus, Plus, ShoppingCart, ShoppingBag, Star, ArrowLeft } from "lucide-react";
+import { Heart, Minus, Plus, ShoppingCart, ShoppingBag, Star, ArrowLeft, ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import productsData from "@/app/data/data.json";
 import Deteals from "@/app/Components/Deteals/page";
 
 import {
@@ -18,6 +17,7 @@ import {
 import { toggleWishlist } from "@/app/store/wishlistSlice";
 
 import { toast } from "react-toastify";
+import gsap from "gsap";
 
 const DetailsPage = () => {
   const params = useParams();
@@ -29,9 +29,10 @@ const DetailsPage = () => {
 
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [apiProduct, setApiProduct] = useState(null);
+  const [product, setProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const productId = Number(params?.id);
+  const detailsContainerRef = useRef(null);
 
   // Fetch real product details from Prisma API
   useEffect(() => {
@@ -40,29 +41,56 @@ const DetailsPage = () => {
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.product) {
-            setApiProduct(data.product);
+            setProduct(data.product);
           }
         })
-        .catch((err) => console.error("Prisma product detail fetch:", err));
+        .catch((err) => console.error("Prisma product detail fetch error:", err))
+        .finally(() => setIsLoading(false));
     }
   }, [params?.id]);
 
-  const product = useMemo(() => {
-    if (apiProduct) return apiProduct;
-    return productsData.find((p) => p.id === productId) || null;
-  }, [apiProduct, productId]);
+  // GSAP animation when product loads
+  useEffect(() => {
+    if (product && detailsContainerRef.current) {
+      gsap.fromTo(
+        detailsContainerRef.current,
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }
+      );
+    }
+  }, [product]);
 
   const isWishlisted = product
     ? wishlistItems.some((item) => item.id === product.id)
     : false;
 
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 animate-pulse">
+        <div className="h-6 w-32 bg-gray-200 rounded-md mb-8" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <div className="aspect-square bg-gray-200 rounded-3xl w-full" />
+          <div className="space-y-4">
+            <div className="h-8 bg-gray-200 rounded-xl w-3/4" />
+            <div className="h-4 bg-gray-200 rounded-md w-1/3" />
+            <div className="h-16 bg-gray-200 rounded-2xl w-full" />
+            <div className="h-24 bg-gray-200 rounded-2xl w-full" />
+            <div className="h-12 bg-gray-200 rounded-2xl w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="max-w-4xl mx-auto py-24 text-center px-4">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Product not found!</h2>
-        <p className="text-gray-500 mb-6">The item you are looking for may have been removed or is unavailable.</p>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Product Not Found</h2>
+        <p className="text-gray-500 mb-6 text-sm">
+          The item you are looking for may have been removed or is unavailable in our database.
+        </p>
         <Link href="/Pages/AllProduct">
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl">
+          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl px-6 font-bold cursor-pointer">
             Browse All Products
           </Button>
         </Link>
@@ -97,19 +125,20 @@ const DetailsPage = () => {
     router.push("/Pages/OrderConfirm");
   };
 
-  const images = product.images && product.images.length > 0
-    ? product.images
-    : ["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80"];
+  const images =
+    product.images && product.images.length > 0
+      ? product.images
+      : ["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80"];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div ref={detailsContainerRef} className="max-w-7xl mx-auto px-4 sm:px-6 py-8 font-sans">
       {/* Back Button */}
       <div className="mb-6">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-emerald-600 transition"
+          className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-600 hover:text-emerald-600 transition cursor-pointer"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={16} />
           <span>Back to Products</span>
         </button>
       </div>
@@ -117,14 +146,14 @@ const DetailsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Left: Product Images */}
         <div className="space-y-4">
-          <div className="relative aspect-square w-full rounded-3xl overflow-hidden bg-gray-50 border border-gray-100 shadow-xs">
+          <div className="relative aspect-square w-full rounded-3xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
             <Image
               src={images[activeImageIndex] || images[0]}
               alt={product.title}
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
               priority
-              className="object-cover transition duration-300"
+              className="object-cover transition-all duration-500"
             />
           </div>
 
@@ -135,9 +164,9 @@ const DetailsPage = () => {
                 <button
                   key={index}
                   onClick={() => setActiveImageIndex(index)}
-                  className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 shrink-0 transition ${
+                  className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 shrink-0 transition cursor-pointer ${
                     activeImageIndex === index
-                      ? "border-emerald-600 shadow-md"
+                      ? "border-emerald-600 shadow-md scale-105"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
@@ -158,8 +187,8 @@ const DetailsPage = () => {
         <div className="space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">
-                {product.category || product.specifications?.category || "Men's Fashion"}
+              <span className="bg-emerald-50 text-emerald-700 text-xs font-extrabold px-3 py-1 rounded-full border border-emerald-200">
+                {product.category || "Fashion"}
               </span>
               <span className="text-xs text-gray-500 font-semibold">{product.sold || "100+ sold"}</span>
             </div>
@@ -176,13 +205,13 @@ const DetailsPage = () => {
               </div>
               <span className="text-gray-300">•</span>
               <span className="text-sm text-gray-500 font-medium">
-                {product.reviews || "342"} Customer Reviews
+                {product.reviews || "120"} Customer Reviews
               </span>
             </div>
           </div>
 
           {/* Price */}
-          <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-100 flex items-baseline gap-3">
+          <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200/80 flex items-baseline gap-3">
             <span className="text-3xl font-extrabold text-emerald-600 font-mono">
               ৳{totalPrice.toLocaleString()}
             </span>
@@ -192,7 +221,7 @@ const DetailsPage = () => {
               </span>
             )}
             {product.discount && (
-              <span className="text-xs font-extrabold text-rose-600 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-extrabold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
                 {product.discount}
               </span>
             )}
@@ -210,7 +239,7 @@ const DetailsPage = () => {
               <button
                 onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                 disabled={quantity <= 1}
-                className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 transition"
+                className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 transition cursor-pointer"
               >
                 <Minus size={15} />
               </button>
@@ -219,7 +248,7 @@ const DetailsPage = () => {
               </span>
               <button
                 onClick={() => setQuantity((prev) => prev + 1)}
-                className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-gray-100 transition"
+                className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-gray-100 transition cursor-pointer"
               >
                 <Plus size={15} />
               </button>
@@ -254,6 +283,22 @@ const DetailsPage = () => {
             >
               <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
             </button>
+          </div>
+
+          {/* Guarantee Badges */}
+          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-slate-500 text-[11px] font-bold">
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck size={16} className="text-emerald-600" />
+              <span>100% Authentic</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Truck size={16} className="text-emerald-600" />
+              <span>Fast Shipping</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <RotateCcw size={16} className="text-emerald-600" />
+              <span>7 Days Return</span>
+            </div>
           </div>
         </div>
       </div>
