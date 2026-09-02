@@ -12,6 +12,8 @@ import {
   LayoutDashboard,
   ShieldCheck,
   LogIn,
+  Loader2,
+  ArrowRight,
 } from "lucide-react";
 import NavMenu from "./NavMenu/NavMenu";
 import Image from "next/image";
@@ -29,9 +31,15 @@ const Navbar = () => {
   const [isBottomVisible, setIsBottomVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+
   const userMenuRef = useRef(null);
+  const searchContainerRef = useRef(null);
+  const mobileSearchContainerRef = useRef(null);
 
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistItems = useSelector((state) => state.wishlist.items);
@@ -42,6 +50,41 @@ const Navbar = () => {
     dispatch(loadStoredAuth());
   }, [dispatch]);
 
+  // Debounced auto-suggestion product fetch
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
+      setSuggestions([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timer = setTimeout(() => {
+      fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=6`)
+        .then((res) => {
+          if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
+            return null;
+          }
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.success && Array.isArray(data.products)) {
+            setSuggestions(data.products);
+          } else {
+            setSuggestions([]);
+          }
+        })
+        .catch((err) => {
+          console.error("Auto suggestion fetch error:", err);
+          setSuggestions([]);
+        })
+        .finally(() => setIsSearching(false));
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const handleUserLogout = () => {
     dispatch(logout());
     dispatch(clearOrders());
@@ -50,15 +93,36 @@ const Navbar = () => {
     router.push("/");
   };
 
-  // Close user dropdown when clicking outside
+  // Close dropdowns when clicking outside or pressing Escape
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setUserMenuOpen(false);
       }
+
+      const isInsideDesktop =
+        searchContainerRef.current && searchContainerRef.current.contains(event.target);
+      const isInsideMobile =
+        mobileSearchContainerRef.current && mobileSearchContainerRef.current.contains(event.target);
+
+      if (!isInsideDesktop && !isInsideMobile) {
+        setShowSuggestions(false);
+      }
     };
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setShowSuggestions(false);
+        setUserMenuOpen(false);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   useEffect(() => {
@@ -83,9 +147,113 @@ const Navbar = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/Pages/AllProduct?search=${encodeURIComponent(searchQuery.trim())}`);
+      setShowSuggestions(false);
       setMobileMenuOpen(false);
+      router.push(`/Pages/AllProduct?search=${encodeURIComponent(searchQuery.trim())}`);
     }
+  };
+
+  const handleSelectProduct = (productId) => {
+    setShowSuggestions(false);
+    setMobileMenuOpen(false);
+    router.push(`/Pages/Details/${productId}`);
+  };
+
+  const handleViewAllResults = (e) => {
+    if (e) e.preventDefault();
+    if (searchQuery.trim()) {
+      setShowSuggestions(false);
+      setMobileMenuOpen(false);
+      router.push(`/Pages/AllProduct?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const renderSuggestionsDropdown = () => {
+    if (!showSuggestions || !searchQuery.trim()) return null;
+
+    return (
+      <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+        {isSearching ? (
+          <div className="flex items-center justify-center py-7 text-gray-400 gap-2 text-sm font-medium">
+            <Loader2 size={18} className="animate-spin text-[#19b77a]" />
+            <span>Searching products...</span>
+          </div>
+        ) : suggestions.length > 0 ? (
+          <div>
+            <div className="px-4 py-2 bg-gray-50/80 border-b border-gray-100 flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+              <span>Matching Products</span>
+              <span>{suggestions.length} items</span>
+            </div>
+            <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+              {suggestions.map((item) => {
+                const thumbnail =
+                  Array.isArray(item.images) && item.images.length > 0
+                    ? item.images[0]
+                    : item.image || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=200&q=80";
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => handleSelectProduct(item.id)}
+                    className="flex items-center gap-3 p-3 hover:bg-emerald-50/60 cursor-pointer transition-colors group"
+                  >
+                    <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-100">
+                      <Image
+                        src={thumbnail}
+                        alt={item.title}
+                        fill
+                        sizes="48px"
+                        className="object-cover group-hover:scale-105 transition-transform"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-gray-900 truncate group-hover:text-emerald-700 transition-colors">
+                        {item.title}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 font-medium">
+                          {item.category || "General"}
+                        </span>
+                        {item.rating && (
+                          <span className="flex items-center gap-0.5 text-[11px] text-amber-500 font-bold">
+                            ★ {item.rating}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-bold text-emerald-600">
+                        ৳{Number(item.price || 0).toLocaleString()}
+                      </div>
+                      {item.oldPrice && item.oldPrice > item.price && (
+                        <div className="text-[11px] text-gray-400 line-through">
+                          ৳{Number(item.oldPrice).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={handleViewAllResults}
+              className="w-full py-2.5 px-4 bg-gray-50 hover:bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center gap-1.5 border-t border-gray-100 transition-colors cursor-pointer"
+            >
+              <span>View all results for &quot;{searchQuery}&quot;</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        ) : (
+          <div className="py-7 px-4 text-center">
+            <p className="text-sm font-semibold text-gray-700">No products found</p>
+            <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
+              No matches found for &quot;{searchQuery}&quot;. Press Enter to browse all products.
+            </p>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const navLinks = [
@@ -123,19 +291,39 @@ const Navbar = () => {
             </Link>
 
             {/* Desktop Search */}
-            <div className="hidden md:flex flex-1 max-w-xl mx-4">
+            <div className="hidden md:flex flex-1 max-w-xl mx-4 relative" ref={searchContainerRef}>
               <form onSubmit={handleSearchSubmit} className="w-full relative">
                 <input
                   type="text"
                   placeholder="Search over 10,000+ authentic products..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (e.target.value.trim()) setShowSuggestions(true);
+                  }}
+                  onFocus={() => {
+                    if (searchQuery.trim()) setShowSuggestions(true);
+                  }}
                   className="w-full pl-11 pr-24 py-2.5 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:border-[#19b77a] focus:bg-white text-sm transition-all shadow-2xs"
                 />
                 <Search
                   size={18}
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSuggestions([]);
+                      setShowSuggestions(false);
+                    }}
+                    className="absolute right-20 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
                 <button
                   type="submit"
                   className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-[#19b77a] hover:bg-[#159e68] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
@@ -143,6 +331,7 @@ const Navbar = () => {
                   Search
                 </button>
               </form>
+              {renderSuggestionsDropdown()}
             </div>
 
             {/* Right Action Icons */}
@@ -280,25 +469,46 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Search Bar */}
-          <div className="md:hidden px-4 pb-3">
+          <div className="md:hidden px-4 pb-3 relative" ref={mobileSearchContainerRef}>
             <form
               onSubmit={handleSearchSubmit}
-              className="flex rounded-xl overflow-hidden border border-gray-200 focus-within:border-[#19b77a]"
+              className="flex rounded-xl overflow-hidden border border-gray-200 focus-within:border-[#19b77a] relative"
             >
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value.trim()) setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (searchQuery.trim()) setShowSuggestions(true);
+                }}
                 placeholder="Search products..."
-                className="flex-1 h-10 px-3 text-sm outline-none bg-gray-50"
+                className="flex-1 h-10 pl-3 pr-8 text-sm outline-none bg-gray-50"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSuggestions([]);
+                    setShowSuggestions(false);
+                  }}
+                  className="absolute right-12 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                  title="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
               <button
                 type="submit"
-                className="bg-[#19b77a] px-4 flex items-center justify-center text-white"
+                className="bg-[#19b77a] px-4 flex items-center justify-center text-white cursor-pointer"
               >
                 <Search size={16} />
               </button>
             </form>
+            {renderSuggestionsDropdown()}
           </div>
         </div>
 
