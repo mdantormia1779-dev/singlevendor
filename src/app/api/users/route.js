@@ -88,3 +88,38 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: "Failed to create user" }, { status: 500 });
   }
 }
+
+// DELETE /api/users?id=...
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: "User ID is required" }, { status: 400 });
+    }
+
+    // Unlink orders or cascade sessions/accounts
+    await prisma.order.updateMany({
+      where: { userId: id },
+      data: { userId: null },
+    });
+
+    await prisma.session.deleteMany({
+      where: { userId: id },
+    });
+
+    await prisma.account.deleteMany({
+      where: { userId: id },
+    });
+
+    await prisma.user.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    console.error("DELETE /api/users error:", error);
+    return NextResponse.json({ success: false, error: "Failed to delete user" }, { status: 500 });
+  }
+}

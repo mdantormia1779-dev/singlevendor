@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Trash2, Heart, AlertTriangle, ShoppingCart } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleWishlist } from "@/app/store/wishlistSlice";
@@ -8,13 +8,19 @@ import { addToCart } from "@/app/store/cartSlice";
 import { toast } from "react-toastify";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuthGuard } from "@/lib/useAuthGuard";
 
 const Wishlist = () => {
   const dispatch = useDispatch();
+  const { requireAuth } = useAuthGuard();
   const wishlistItems = useSelector((state) => state.wishlist.items) || [];
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+
+  useEffect(() => {
+    requireAuth("Please login to view and manage your wishlist!", "/Dashboard/user/Wishlist");
+  }, [requireAuth]);
 
   const confirmDelete = (id) => {
     setItemToDelete(id);
@@ -32,6 +38,9 @@ const Wishlist = () => {
   };
 
   const handleAddToCart = (product) => {
+    if (!requireAuth("Please login to add items to your cart!")) {
+      return;
+    }
     dispatch(addToCart({ ...product, quantity: 1 }));
     toast.success("Added to cart! 🛍️");
   };

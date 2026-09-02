@@ -10,10 +10,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { clearBuyNowItem } from "@/app/store/cartSlice";
+import { useAuthGuard } from "@/lib/useAuthGuard";
 
 const OrderSummery = ({ items = [] }) => {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { requireAuth } = useAuthGuard();
 
   const subtotal = items.reduce((acc, item) => {
     const price = typeof item.price === "string" ? parseFloat(item.price.replace(/,/g, "")) : Number(item.price || 0);
@@ -33,6 +35,9 @@ const OrderSummery = ({ items = [] }) => {
   const grandTotal = subtotal + deliveryFee;
 
   const handleCheckout = () => {
+    if (!requireAuth("Please login to proceed to checkout!", "/Pages/OrderConfirm")) {
+      return;
+    }
     // Clear any leftover direct buy now item so OrderConfirm processes the entire cart
     dispatch(clearBuyNowItem());
     router.push("/Pages/OrderConfirm");

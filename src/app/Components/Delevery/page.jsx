@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Truck, CreditCard, Banknote, ShieldCheck, Zap, Copy, Check, Hash, Phone, Sparkles, CheckCircle2 } from "lucide-react";
+import { Truck, CreditCard, Banknote, ShieldCheck, Zap, Copy, Check, Hash, Phone, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 
 const DeleveryPage = ({
@@ -16,6 +16,8 @@ const DeleveryPage = ({
   paymentData = {},
   setPaymentData,
   errors = {},
+  setErrors,
+  onFieldBlur,
 }) => {
   const [copied, setCopied] = useState(false);
   const merchantNumber = "01318964063";
@@ -34,6 +36,13 @@ const DeleveryPage = ({
         ...prev,
         [field]: value,
       }));
+    }
+    if (setErrors && errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
     }
   };
 
@@ -225,42 +234,58 @@ const DeleveryPage = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <Label className="text-xs font-bold text-gray-700 block mb-1">
-                      Your bKash Number <span className="text-red-500">*</span>
+                    <Label htmlFor="field-walletNumber" className="text-xs font-bold text-gray-700 block mb-1">
+                      Your bKash Number / বিকাশ নম্বর <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <Input
+                        id="field-walletNumber"
                         placeholder="01XXXXXXXXX"
                         value={paymentData.walletNumber || ""}
                         onChange={(e) => handlePaymentFieldChange("walletNumber", e.target.value)}
-                        className={`bg-white pl-10 h-11 rounded-xl text-sm font-mono focus:border-[#e2136e] ${
-                          errors.walletNumber ? "border-red-500 ring-1 ring-red-500/20" : "border-slate-200"
+                        onBlur={() => onFieldBlur && onFieldBlur("walletNumber", paymentData.walletNumber)}
+                        className={`bg-white pl-10 pr-10 h-11 rounded-xl text-sm font-mono focus:border-[#e2136e] ${
+                          errors.walletNumber ? "border-red-500 ring-2 ring-red-500/10 bg-red-50/20" : "border-slate-200"
                         }`}
                       />
-                      <Phone size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Phone size={15} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.walletNumber ? "text-red-400" : "text-gray-400"}`} />
+                      {paymentData.walletNumber && !errors.walletNumber && /^01[3-9]\d{8}$/.test(paymentData.walletNumber.replace(/[^\d+]/g, "").replace(/^\+?88/, "")) && (
+                        <CheckCircle2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-500" />
+                      )}
                     </div>
                     {errors.walletNumber && (
-                      <p className="text-xs text-red-500 font-semibold mt-1">{errors.walletNumber}</p>
+                      <p className="text-xs text-red-500 font-semibold flex items-center gap-1 mt-1">
+                        <AlertCircle size={13} className="shrink-0" />
+                        <span>{errors.walletNumber}</span>
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <Label className="text-xs font-bold text-gray-700 block mb-1">
+                    <Label htmlFor="field-trxId" className="text-xs font-bold text-gray-700 block mb-1">
                       bKash Transaction ID (TrxID) <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <Input
+                        id="field-trxId"
                         placeholder="e.g. 9HJ28X0A"
                         value={paymentData.trxId || ""}
                         onChange={(e) => handlePaymentFieldChange("trxId", e.target.value)}
-                        className={`bg-white pl-10 h-11 rounded-xl text-sm font-mono uppercase focus:border-[#e2136e] ${
-                          errors.trxId ? "border-red-500 ring-1 ring-red-500/20" : "border-slate-200"
+                        onBlur={() => onFieldBlur && onFieldBlur("trxId", paymentData.trxId)}
+                        className={`bg-white pl-10 pr-10 h-11 rounded-xl text-sm font-mono uppercase focus:border-[#e2136e] ${
+                          errors.trxId ? "border-red-500 ring-2 ring-red-500/10 bg-red-50/20" : "border-slate-200"
                         }`}
                       />
-                      <Hash size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Hash size={15} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.trxId ? "text-red-400" : "text-gray-400"}`} />
+                      {paymentData.trxId && !errors.trxId && paymentData.trxId.trim().length >= 6 && (
+                        <CheckCircle2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-500" />
+                      )}
                     </div>
                     {errors.trxId && (
-                      <p className="text-xs text-red-500 font-semibold mt-1">{errors.trxId}</p>
+                      <p className="text-xs text-red-500 font-semibold flex items-center gap-1 mt-1">
+                        <AlertCircle size={13} className="shrink-0" />
+                        <span>{errors.trxId}</span>
+                      </p>
                     )}
                   </div>
                 </div>
@@ -318,42 +343,58 @@ const DeleveryPage = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <Label className="text-xs font-bold text-gray-700 block mb-1">
-                      Your Nagad Number <span className="text-red-500">*</span>
+                    <Label htmlFor="field-walletNumber" className="text-xs font-bold text-gray-700 block mb-1">
+                      Your Nagad Number / নগদ নম্বর <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <Input
+                        id="field-walletNumber"
                         placeholder="01XXXXXXXXX"
                         value={paymentData.walletNumber || ""}
                         onChange={(e) => handlePaymentFieldChange("walletNumber", e.target.value)}
-                        className={`bg-white pl-10 h-11 rounded-xl text-sm font-mono focus:border-[#f04f32] ${
-                          errors.walletNumber ? "border-red-500 ring-1 ring-red-500/20" : "border-slate-200"
+                        onBlur={() => onFieldBlur && onFieldBlur("walletNumber", paymentData.walletNumber)}
+                        className={`bg-white pl-10 pr-10 h-11 rounded-xl text-sm font-mono focus:border-[#f04f32] ${
+                          errors.walletNumber ? "border-red-500 ring-2 ring-red-500/10 bg-red-50/20" : "border-slate-200"
                         }`}
                       />
-                      <Phone size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Phone size={15} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.walletNumber ? "text-red-400" : "text-gray-400"}`} />
+                      {paymentData.walletNumber && !errors.walletNumber && /^01[3-9]\d{8}$/.test(paymentData.walletNumber.replace(/[^\d+]/g, "").replace(/^\+?88/, "")) && (
+                        <CheckCircle2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-500" />
+                      )}
                     </div>
                     {errors.walletNumber && (
-                      <p className="text-xs text-red-500 font-semibold mt-1">{errors.walletNumber}</p>
+                      <p className="text-xs text-red-500 font-semibold flex items-center gap-1 mt-1">
+                        <AlertCircle size={13} className="shrink-0" />
+                        <span>{errors.walletNumber}</span>
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <Label className="text-xs font-bold text-gray-700 block mb-1">
+                    <Label htmlFor="field-trxId" className="text-xs font-bold text-gray-700 block mb-1">
                       Nagad Transaction ID (TrxID) <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <Input
+                        id="field-trxId"
                         placeholder="e.g. 8KL23M9Q"
                         value={paymentData.trxId || ""}
                         onChange={(e) => handlePaymentFieldChange("trxId", e.target.value)}
-                        className={`bg-white pl-10 h-11 rounded-xl text-sm font-mono uppercase focus:border-[#f04f32] ${
-                          errors.trxId ? "border-red-500 ring-1 ring-red-500/20" : "border-slate-200"
+                        onBlur={() => onFieldBlur && onFieldBlur("trxId", paymentData.trxId)}
+                        className={`bg-white pl-10 pr-10 h-11 rounded-xl text-sm font-mono uppercase focus:border-[#f04f32] ${
+                          errors.trxId ? "border-red-500 ring-2 ring-red-500/10 bg-red-50/20" : "border-slate-200"
                         }`}
                       />
-                      <Hash size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Hash size={15} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.trxId ? "text-red-400" : "text-gray-400"}`} />
+                      {paymentData.trxId && !errors.trxId && paymentData.trxId.trim().length >= 6 && (
+                        <CheckCircle2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-500" />
+                      )}
                     </div>
                     {errors.trxId && (
-                      <p className="text-xs text-red-500 font-semibold mt-1">{errors.trxId}</p>
+                      <p className="text-xs text-red-500 font-semibold flex items-center gap-1 mt-1">
+                        <AlertCircle size={13} className="shrink-0" />
+                        <span>{errors.trxId}</span>
+                      </p>
                     )}
                   </div>
                 </div>

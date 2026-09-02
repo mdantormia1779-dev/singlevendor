@@ -17,7 +17,7 @@ import gsap from "gsap";
 
 const Hero = () => {
   const heroImages = [
-    "https://i.ibb.co/GfQQjzb4/Group-1000004900.png",
+    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
     "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80",
     "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80",
   ];
@@ -172,8 +172,8 @@ const Hero = () => {
                       ? "opacity-100 scale-100"
                       : "opacity-0 scale-105"
                   }`}
-                  priority={index === 0}
-                  loading={index === 0 ? "eager" : undefined}
+                  priority={index < 2}
+                  loading={index < 2 ? "eager" : undefined}
                 />
               ))}
 

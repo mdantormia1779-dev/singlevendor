@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { updateOrderStatus } from "@/app/store/cartSlice";
+import { updateOrderStatus, deleteOrder } from "@/app/store/cartSlice";
 import {
   Search,
   Eye,
@@ -10,6 +10,8 @@ import {
   Printer,
   X,
   RefreshCw,
+  AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import Image from "next/image";
@@ -22,6 +24,8 @@ export default function AdminOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const tableRef = useRef(null);
 
   // Fetch real orders from database API
@@ -103,8 +107,10 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handleDeleteOrder = async (orderId) => {
-    if (!confirm(`Are you sure you want to delete order ${orderId}?`)) return;
+  const handleConfirmDelete = async () => {
+    if (!orderToDelete) return;
+    setIsDeleting(true);
+    const orderId = orderToDelete.id;
 
     try {
       const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
@@ -114,11 +120,17 @@ export default function AdminOrdersPage() {
       if (data.success) {
         setOrders((prev) => prev.filter((o) => o.id !== orderId));
         if (selectedOrder && selectedOrder.id === orderId) setSelectedOrder(null);
-        toast.success(`Order ${orderId} deleted successfully.`);
+        dispatch(deleteOrder(orderId));
+        toast.success(`Order ${orderId} deleted permanently from database.`);
+        setOrderToDelete(null);
+      } else {
+        toast.error(data.error || "Failed to delete order from database.");
       }
     } catch (err) {
       console.error("Delete order error:", err);
       toast.error("Failed to delete order.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -265,7 +277,7 @@ export default function AdminOrdersPage() {
                         <Eye size={14} /> View
                       </button>
                       <button
-                        onClick={() => handleDeleteOrder(ord.id)}
+                        onClick={() => setOrderToDelete(ord)}
                         className="inline-flex items-center bg-gray-100 hover:bg-rose-50 hover:text-rose-700 text-gray-500 p-1.5 rounded-xl transition cursor-pointer"
                         title="Delete Order"
                       >
@@ -370,6 +382,16 @@ export default function AdminOrdersPage() {
               </div>
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <button
+                  onClick={() => {
+                    const ord = selectedOrder;
+                    setSelectedOrder(null);
+                    setOrderToDelete(ord);
+                  }}
+                  className="flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer border border-rose-200"
+                >
+                  <Trash2 size={14} /> Delete Order
+                </button>
+                <button
                   onClick={() => window.print()}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer"
                 >
@@ -382,6 +404,67 @@ export default function AdminOrdersPage() {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {orderToDelete && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 font-sans">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative">
+            <button
+              onClick={() => !isDeleting && setOrderToDelete(null)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-gray-900">
+                  Delete Order {orderToDelete.id}?
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Customer: {orderToDelete.customer?.name || orderToDelete.customerName || "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600 my-4">
+              Are you sure you want to permanently delete this order from the database? This action cannot be undone.
+            </p>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setOrderToDelete(null)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-md shadow-rose-200 cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    <span>Delete Permanently</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

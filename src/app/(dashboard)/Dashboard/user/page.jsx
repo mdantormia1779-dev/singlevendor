@@ -26,15 +26,13 @@ export default function DashboardHomePage() {
     fetch("/api/orders")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.orders && data.orders.length > 0) {
+        if (data.success && data.orders) {
           setDbOrders(data.orders);
-        } else {
-          setDbOrders(reduxOrders);
         }
       })
-      .catch(() => setDbOrders(reduxOrders))
+      .catch((err) => console.error("Dashboard orders fetch error:", err))
       .finally(() => setLoading(false));
-  }, [dispatch, reduxOrders]);
+  }, [dispatch]);
 
   const activeOrdersList = dbOrders.length > 0 ? dbOrders : reduxOrders;
 

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Phone, MapPin, Building, Home, Briefcase, Navigation, MessageSquare, Check } from "lucide-react";
+import { User, Phone, MapPin, Building, Home, Briefcase, Navigation, MessageSquare, Check, AlertCircle, CheckCircle2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -41,6 +41,8 @@ const ContactPage = ({
   contactData = {},
   setContactData,
   errors = {},
+  setErrors,
+  onFieldBlur,
 }) => {
   const selectedDivision = contactData.division || "";
   const districts = selectedDivision ? (locationData[selectedDivision] || []) : [];
@@ -53,6 +55,14 @@ const ContactPage = ({
         [field]: value,
       }));
     }
+    // Instantly clear field error as user types
+    if (setErrors && errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
   };
 
   const handleDivisionChange = (division) => {
@@ -63,6 +73,25 @@ const ContactPage = ({
         district: "", // reset district when division changes
       }));
     }
+    if (setErrors) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.division;
+        delete next.district;
+        return next;
+      });
+    }
+  };
+
+  const handleDistrictChange = (district) => {
+    handleFieldChange("district", district);
+    if (setErrors && errors.district) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.district;
+        return next;
+      });
+    }
   };
 
   const handleQuickNote = (note) => {
@@ -70,7 +99,10 @@ const ContactPage = ({
     if (current.includes(note)) {
       handleFieldChange("deliveryNotes", current.replace(note, "").trim());
     } else {
-      handleFieldChange("deliveryNotes", current ? `${current}, ${note}` : note);
+      const updated = current ? `${current}, ${note}` : note;
+      if (updated.length <= 200) {
+        handleFieldChange("deliveryNotes", updated);
+      }
     }
   };
 
@@ -99,44 +131,60 @@ const ContactPage = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Full Name */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-gray-700 flex items-center justify-between">
-                <span>Full Name <span className="text-red-500">*</span></span>
+              <Label htmlFor="field-fullName" className="text-xs font-bold text-gray-700 flex items-center justify-between">
+                <span>Full Name / পূর্ণ নাম <span className="text-red-500">*</span></span>
               </Label>
               <div className="relative">
                 <Input
+                  id="field-fullName"
                   placeholder="e.g. Ebrahim Hossain"
                   value={contactData.fullName || ""}
                   onChange={(e) => handleFieldChange("fullName", e.target.value)}
-                  className={`bg-slate-50/60 pl-10 h-12 rounded-2xl text-sm font-medium transition-all focus:bg-white focus:border-emerald-500 ${
-                    errors.fullName ? "border-red-500 ring-2 ring-red-500/10" : "border-slate-200"
+                  onBlur={() => onFieldBlur && onFieldBlur("fullName", contactData.fullName)}
+                  className={`bg-slate-50/60 pl-10 pr-10 h-12 rounded-2xl text-sm font-medium transition-all focus:bg-white focus:border-emerald-500 ${
+                    errors.fullName ? "border-red-500 ring-2 ring-red-500/10 bg-red-50/20" : "border-slate-200"
                   }`}
                 />
-                <User size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <User size={17} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.fullName ? "text-red-400" : "text-gray-400"}`} />
+                {contactData.fullName && !errors.fullName && contactData.fullName.trim().length >= 3 && (
+                  <CheckCircle2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-500" />
+                )}
               </div>
               {errors.fullName && (
-                <p className="text-xs text-red-500 font-semibold mt-1">{errors.fullName}</p>
+                <p className="text-xs text-red-500 font-semibold flex items-center gap-1 mt-1">
+                  <AlertCircle size={13} className="shrink-0" />
+                  <span>{errors.fullName}</span>
+                </p>
               )}
             </div>
 
             {/* Mobile Phone */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-gray-700 flex items-center justify-between">
-                <span>Mobile Number <span className="text-red-500">*</span></span>
-                <span className="text-[10px] text-gray-400 font-normal">Bangladeshi 11-digit</span>
+              <Label htmlFor="field-phone" className="text-xs font-bold text-gray-700 flex items-center justify-between">
+                <span>Mobile Number / মোবাইল <span className="text-red-500">*</span></span>
+                <span className="text-[10px] text-gray-400 font-normal">013 - 019 (11 digits)</span>
               </Label>
               <div className="relative">
                 <Input
-                  placeholder="01XXXXXXXXX"
+                  id="field-phone"
+                  placeholder="017XXXXXXXX"
                   value={contactData.phone || ""}
                   onChange={(e) => handleFieldChange("phone", e.target.value)}
-                  className={`bg-slate-50/60 pl-10 h-12 rounded-2xl text-sm font-mono font-medium transition-all focus:bg-white focus:border-emerald-500 ${
-                    errors.phone ? "border-red-500 ring-2 ring-red-500/10" : "border-slate-200"
+                  onBlur={() => onFieldBlur && onFieldBlur("phone", contactData.phone)}
+                  className={`bg-slate-50/60 pl-10 pr-10 h-12 rounded-2xl text-sm font-mono font-medium transition-all focus:bg-white focus:border-emerald-500 ${
+                    errors.phone ? "border-red-500 ring-2 ring-red-500/10 bg-red-50/20" : "border-slate-200"
                   }`}
                 />
-                <Phone size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Phone size={17} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.phone ? "text-red-400" : "text-gray-400"}`} />
+                {contactData.phone && !errors.phone && /^01[3-9]\d{8}$/.test(contactData.phone.replace(/[^\d+]/g, "").replace(/^\+?88/, "")) && (
+                  <CheckCircle2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-500" />
+                )}
               </div>
               {errors.phone && (
-                <p className="text-xs text-red-500 font-semibold mt-1">{errors.phone}</p>
+                <p className="text-xs text-red-500 font-semibold flex items-center gap-1 mt-1">
+                  <AlertCircle size={13} className="shrink-0" />
+                  <span>{errors.phone}</span>
+                </p>
               )}
             </div>
           </div>
@@ -197,91 +245,120 @@ const ContactPage = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Division Select */}
             <div className="space-y-1.5 w-full">
-              <Label className="text-xs font-bold text-gray-700 block">
+              <Label htmlFor="field-division" className="text-xs font-bold text-gray-700 block">
                 Division / বিভাগ <span className="text-red-500">*</span>
               </Label>
-              <Select value={selectedDivision} onValueChange={handleDivisionChange}>
-                <SelectTrigger className={`w-full bg-slate-50/60 h-12 rounded-2xl text-sm font-medium focus:bg-white focus:border-emerald-500 ${
-                  errors.division ? "border-red-500 ring-2 ring-red-500/10" : "border-slate-200"
-                }`}>
-                  <SelectValue placeholder="Select Division" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl shadow-xl z-50">
-                  {Object.keys(locationData).map((div) => (
-                    <SelectItem key={div} value={div} className="text-sm font-medium py-2.5 rounded-xl cursor-pointer">
-                      {div}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div id="field-division">
+                <Select value={selectedDivision} onValueChange={handleDivisionChange}>
+                  <SelectTrigger className={`w-full bg-slate-50/60 h-12 rounded-2xl text-sm font-medium focus:bg-white focus:border-emerald-500 ${
+                    errors.division ? "border-red-500 ring-2 ring-red-500/10 bg-red-50/20" : "border-slate-200"
+                  }`}>
+                    <SelectValue placeholder="Select Division" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl shadow-xl z-50">
+                    {Object.keys(locationData).map((div) => (
+                      <SelectItem key={div} value={div} className="text-sm font-medium py-2.5 rounded-xl cursor-pointer">
+                        {div}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               {errors.division && (
-                <p className="text-xs text-red-500 font-semibold mt-1">{errors.division}</p>
+                <p className="text-xs text-red-500 font-semibold flex items-center gap-1 mt-1">
+                  <AlertCircle size={13} className="shrink-0" />
+                  <span>{errors.division}</span>
+                </p>
               )}
             </div>
 
             {/* District Select */}
             <div className="space-y-1.5 w-full">
-              <Label className="text-xs font-bold text-gray-700 block">
+              <Label htmlFor="field-district" className="text-xs font-bold text-gray-700 block">
                 District / Zilla / জেলা <span className="text-red-500">*</span>
               </Label>
-              <Select
-                value={contactData.district || ""}
-                onValueChange={(val) => handleFieldChange("district", val)}
-                disabled={!selectedDivision}
-              >
-                <SelectTrigger className={`w-full bg-slate-50/60 h-12 rounded-2xl text-sm font-medium focus:bg-white focus:border-emerald-500 ${
-                  errors.district ? "border-red-500 ring-2 ring-red-500/10" : "border-slate-200"
-                }`}>
-                  <SelectValue placeholder={selectedDivision ? "Select District" : "Select Division first"} />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl shadow-xl max-h-64 z-50">
-                  {districts.map((dist) => (
-                    <SelectItem key={dist} value={dist} className="text-sm font-medium py-2.5 rounded-xl cursor-pointer">
-                      {dist}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div id="field-district">
+                <Select
+                  value={contactData.district || ""}
+                  onValueChange={handleDistrictChange}
+                  disabled={!selectedDivision}
+                >
+                  <SelectTrigger className={`w-full bg-slate-50/60 h-12 rounded-2xl text-sm font-medium focus:bg-white focus:border-emerald-500 ${
+                    errors.district ? "border-red-500 ring-2 ring-red-500/10 bg-red-50/20" : "border-slate-200"
+                  }`}>
+                    <SelectValue placeholder={selectedDivision ? "Select District" : "Select Division first"} />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl shadow-xl max-h-64 z-50">
+                    {districts.map((dist) => (
+                      <SelectItem key={dist} value={dist} className="text-sm font-medium py-2.5 rounded-xl cursor-pointer">
+                        {dist}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               {errors.district && (
-                <p className="text-xs text-red-500 font-semibold mt-1">{errors.district}</p>
+                <p className="text-xs text-red-500 font-semibold flex items-center gap-1 mt-1">
+                  <AlertCircle size={13} className="shrink-0" />
+                  <span>{errors.district}</span>
+                </p>
               )}
             </div>
 
             {/* Thana / Area */}
             <div className="col-span-full space-y-1.5">
-              <Label className="text-xs font-bold text-gray-700 block">
-                Area / Thana / Upazila / থানা <span className="text-gray-400 font-normal">(e.g. Dhanmondi, Uttara, Banani)</span>
+              <Label htmlFor="field-upazila" className="text-xs font-bold text-gray-700 block">
+                Area / Thana / Upazila / থানা <span className="text-red-500">*</span> <span className="text-gray-400 font-normal">(e.g. Dhanmondi, Uttara, Mirpur)</span>
               </Label>
               <div className="relative">
                 <Input
+                  id="field-upazila"
                   placeholder="e.g. Dhanmondi, Mirpur-10, Gulshan-2, Uttara Sector 4"
                   value={contactData.upazila || ""}
                   onChange={(e) => handleFieldChange("upazila", e.target.value)}
-                  className="bg-slate-50/60 pl-10 h-12 rounded-2xl text-sm font-medium border-slate-200 focus:bg-white focus:border-emerald-500"
+                  onBlur={() => onFieldBlur && onFieldBlur("upazila", contactData.upazila)}
+                  className={`bg-slate-50/60 pl-10 pr-10 h-12 rounded-2xl text-sm font-medium transition-all focus:bg-white focus:border-emerald-500 ${
+                    errors.upazila ? "border-red-500 ring-2 ring-red-500/10 bg-red-50/20" : "border-slate-200"
+                  }`}
                 />
-                <Building size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Building size={17} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.upazila ? "text-red-400" : "text-gray-400"}`} />
+                {contactData.upazila && !errors.upazila && contactData.upazila.trim().length >= 2 && (
+                  <CheckCircle2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-500" />
+                )}
               </div>
+              {errors.upazila && (
+                <p className="text-xs text-red-500 font-semibold flex items-center gap-1 mt-1">
+                  <AlertCircle size={13} className="shrink-0" />
+                  <span>{errors.upazila}</span>
+                </p>
+              )}
             </div>
 
             {/* Detailed Street Address */}
             <div className="col-span-full space-y-1.5">
-              <Label className="text-xs font-bold text-gray-700 block">
-                Detailed Street Address / বাড়ি ও রাস্তার নম্বর <span className="text-red-500">*</span>
+              <Label htmlFor="field-streetAddress" className="text-xs font-bold text-gray-700 flex items-center justify-between">
+                <span>Detailed Street Address / বাড়ি ও রাস্তার নম্বর <span className="text-red-500">*</span></span>
+                <span className="text-[10px] text-gray-400">Min. 8 characters</span>
               </Label>
               <div className="relative">
                 <textarea
+                  id="field-streetAddress"
                   className={`w-full p-4 pl-10 border rounded-2xl bg-slate-50/60 text-sm font-medium focus:outline-none focus:bg-white focus:border-emerald-500 resize-none transition-all ${
-                    errors.streetAddress ? "border-red-500 ring-2 ring-red-500/10" : "border-slate-200"
+                    errors.streetAddress ? "border-red-500 ring-2 ring-red-500/10 bg-red-50/20" : "border-slate-200"
                   }`}
                   rows={3}
                   placeholder="House / Flat / Holding number, Road number, Block, Landmark or nearby prominent point..."
                   value={contactData.streetAddress || ""}
                   onChange={(e) => handleFieldChange("streetAddress", e.target.value)}
+                  onBlur={() => onFieldBlur && onFieldBlur("streetAddress", contactData.streetAddress)}
                 />
-                <Home size={17} className="absolute left-3.5 top-4.5 text-gray-400" />
+                <Home size={17} className={`absolute left-3.5 top-4.5 ${errors.streetAddress ? "text-red-400" : "text-gray-400"}`} />
               </div>
               {errors.streetAddress && (
-                <p className="text-xs text-red-500 font-semibold mt-1">{errors.streetAddress}</p>
+                <p className="text-xs text-red-500 font-semibold flex items-center gap-1 mt-1">
+                  <AlertCircle size={13} className="shrink-0" />
+                  <span>{errors.streetAddress}</span>
+                </p>
               )}
             </div>
 
@@ -311,12 +388,18 @@ const ContactPage = ({
                 ))}
               </div>
 
-              <Input
-                placeholder="Any special notes for courier rider..."
-                value={contactData.deliveryNotes || ""}
-                onChange={(e) => handleFieldChange("deliveryNotes", e.target.value)}
-                className="bg-slate-50/60 h-10 rounded-xl text-xs font-medium border-slate-200 focus:bg-white focus:border-emerald-500"
-              />
+              <div className="relative">
+                <Input
+                  placeholder="Any special notes for courier rider..."
+                  value={contactData.deliveryNotes || ""}
+                  maxLength={200}
+                  onChange={(e) => handleFieldChange("deliveryNotes", e.target.value)}
+                  className="bg-slate-50/60 h-10 rounded-xl text-xs font-medium border-slate-200 focus:bg-white focus:border-emerald-500 pr-16"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-mono pointer-events-none">
+                  {(contactData.deliveryNotes || "").length}/200
+                </span>
+              </div>
             </div>
           </div>
         </CardContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ContactPage from "@/app/Components/Contact/page";
 import OrderSummaryConfirm from "@/app/Components/OrderSummaryConfirm/OrderSummaryConfirm";
 import DeleveryPage from "@/app/Components/Delevery/page";
@@ -10,22 +10,37 @@ import { addOrder, clearBuyNowItem, clearCart } from "@/app/store/cartSlice";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useAuthGuard } from "@/lib/useAuthGuard";
 
 const OrderConfirmPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("express");
-  const [paymentMethod, setPaymentMethod] = useState("bkash");
+  const [paymentMethod, setPaymentMethod] = useState("cod");
   const [couponDiscount, setCouponDiscount] = useState(0);
 
+  const handlePaymentMethodSelect = (method) => {
+    setPaymentMethod(method);
+    if (method === "cod") {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.walletNumber;
+        delete next.trxId;
+        return next;
+      });
+    }
+  };
+
+  const { isAuthenticated, user, requireAuth } = useAuthGuard();
+
   // Customer Contact & Address State
-  const [contactData, setContactData] = useState({
-    fullName: "Ebrahim Hossain",
-    phone: "01318964063",
-    division: "Dhaka",
-    district: "Dhaka",
-    upazila: "Dhanmondi",
-    streetAddress: "House 12, Road 5, Dhanmondi",
-  });
+  const [contactData, setContactData] = useState(() => ({
+    fullName: user?.name || "",
+    phone: user?.phone || "",
+    division: "",
+    district: "",
+    upazila: "",
+    streetAddress: "",
+  }));
 
   // Payment Details State
   const [paymentData, setPaymentData] = useState({
@@ -38,6 +53,10 @@ const OrderConfirmPage = () => {
 
   const router = useRouter();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    requireAuth("Please login to place and confirm your order!", "/Pages/OrderConfirm");
+  }, [requireAuth]);
 
   const buyNowItem = useSelector((state) => state.cart.buyNowItem);
   const cartItems = useSelector((state) => state.cart.items);
@@ -69,55 +88,145 @@ const OrderConfirmPage = () => {
     }
   };
 
+  // Helper validation functions
+  const normalizeBDPhone = (num) => {
+    if (!num || typeof num !== "string") return "";
+    return num.replace(/[^\d+]/g, "").replace(/^\+88/, "").replace(/^88/, "").trim();
+  };
+
+  const validateFullName = (name) => {
+    if (!name || !name.trim()) return "Full name is required / পূর্ণ নাম প্রদান করুন।";
+    const trimmed = name.trim();
+    if (trimmed.length < 3) return "Name must be at least 3 characters / নাম কমপক্ষে ৩ অক্ষরের হতে হবে।";
+    const nameRegex = /^[a-zA-Z\u0980-\u09FF\s.'-]+$/;
+    if (!nameRegex.test(trimmed)) {
+      return "Name should only contain letters / নাম শুধুমাত্র বর্ণ দিয়ে লিখুন।";
+    }
+    return null;
+  };
+
+  const validatePhone = (num) => {
+    const clean = normalizeBDPhone(num);
+    if (!clean) return "Mobile phone number is required / মোবাইল নম্বর আবশ্যক।";
+    if (clean.length < 11) return "Number must be 11 digits (e.g. 017XXXXXXXX).";
+    if (clean.length > 11) return "Number cannot exceed 11 digits.";
+    if (!/^01[3-9]\d{8}$/.test(clean)) {
+      return "Valid BD mobile operator required (013-019).";
+    }
+    return null;
+  };
+
+  const validateDivision = (div) => {
+    if (!div) return "Please select your division / বিভাগ নির্বাচন করুন।";
+    return null;
+  };
+
+  const validateDistrict = (dist) => {
+    if (!dist) return "Please select your district / জেলা নির্বাচন করুন।";
+    return null;
+  };
+
+  const validateUpazila = (area) => {
+    if (!area || !area.trim()) return "Thana / Area / Upazila is required for courier delivery.";
+    if (area.trim().length < 2) return "Please enter a valid area / thana name.";
+    return null;
+  };
+
+  const validateStreetAddress = (addr) => {
+    if (!addr || !addr.trim()) return "Detailed delivery address is required / সম্পূর্ণ ঠিকানা আবশ্যক।";
+    const trimmed = addr.trim();
+    if (trimmed.length < 8) return "Please include House/Road/Area (min 8 characters).";
+    if (!/[a-zA-Z\u0980-\u09FF]/.test(trimmed)) return "Address must contain proper street/area details.";
+    return null;
+  };
+
+  const validateWalletNumber = (num, method) => {
+    const clean = normalizeBDPhone(num);
+    if (!clean) return `Enter your ${method.toUpperCase()} mobile account number.`;
+    if (!/^01[3-9]\d{8}$/.test(clean)) return "Enter a valid 11-digit wallet mobile number.";
+    return null;
+  };
+
+  const validateTrxId = (trx, method) => {
+    if (!trx || !trx.trim()) return `${method.toUpperCase()} Transaction ID (TrxID) is required.`;
+    const clean = trx.trim().toUpperCase();
+    if (clean.length < 6) return "TrxID must be at least 6 characters.";
+    if (!/^[A-Z0-9]{6,18}$/.test(clean)) return "TrxID should only contain alphanumeric characters.";
+    return null;
+  };
+
+  // Blur validation handler for individual fields
+  const handleFieldBlur = (field, value) => {
+    let error = null;
+    if (field === "fullName") error = validateFullName(value);
+    else if (field === "phone") error = validatePhone(value);
+    else if (field === "division") error = validateDivision(value);
+    else if (field === "district") error = validateDistrict(value);
+    else if (field === "upazila") error = validateUpazila(value);
+    else if (field === "streetAddress") error = validateStreetAddress(value);
+    else if (field === "walletNumber") error = validateWalletNumber(value, paymentMethod);
+    else if (field === "trxId") error = validateTrxId(value, paymentMethod);
+
+    if (error) {
+      setErrors((prev) => ({ ...prev, [field]: error }));
+    } else {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
-    // 1. Full Name validation
-    if (!contactData.fullName || contactData.fullName.trim().length < 2) {
-      newErrors.fullName = "Please enter your full name (at least 2 letters).";
-    }
+    const nameErr = validateFullName(contactData.fullName);
+    if (nameErr) newErrors.fullName = nameErr;
 
-    // 2. Phone validation (Bangladeshi 11-digit format: 013-019)
-    const bdPhoneRegex = /^01[3-9]\d{8}$/;
-    if (!contactData.phone || !contactData.phone.trim()) {
-      newErrors.phone = "Mobile phone number is required.";
-    } else if (!bdPhoneRegex.test(contactData.phone.trim())) {
-      newErrors.phone = "Enter a valid 11-digit BD mobile number (e.g. 017XXXXXXXX).";
-    }
+    const phoneErr = validatePhone(contactData.phone);
+    if (phoneErr) newErrors.phone = phoneErr;
 
-    // 3. Division validation
-    if (!contactData.division) {
-      newErrors.division = "Please select your division.";
-    }
+    const divErr = validateDivision(contactData.division);
+    if (divErr) newErrors.division = divErr;
 
-    // 4. District validation
-    if (!contactData.district) {
-      newErrors.district = "Please select your district.";
-    }
+    const distErr = validateDistrict(contactData.district);
+    if (distErr) newErrors.district = distErr;
 
-    // 5. Detailed Street Address validation
-    if (!contactData.streetAddress || contactData.streetAddress.trim().length < 5) {
-      newErrors.streetAddress = "Please enter your detailed street/house address (min 5 characters).";
-    }
+    const upazilaErr = validateUpazila(contactData.upazila);
+    if (upazilaErr) newErrors.upazila = upazilaErr;
 
-    // 6. Online Payment (bKash / Nagad) validation
+    const addrErr = validateStreetAddress(contactData.streetAddress);
+    if (addrErr) newErrors.streetAddress = addrErr;
+
     if (paymentMethod === "bkash" || paymentMethod === "nagad") {
-      if (!paymentData.walletNumber || !paymentData.walletNumber.trim()) {
-        newErrors.walletNumber = `Enter the ${paymentMethod.toUpperCase()} wallet number you sent money from.`;
-      } else if (!bdPhoneRegex.test(paymentData.walletNumber.trim())) {
-        newErrors.walletNumber = "Enter a valid 11-digit wallet number.";
-      }
+      const walletErr = validateWalletNumber(paymentData.walletNumber, paymentMethod);
+      if (walletErr) newErrors.walletNumber = walletErr;
 
-      if (!paymentData.trxId || paymentData.trxId.trim().length < 4) {
-        newErrors.trxId = "Transaction ID (TrxID) is required for online payment.";
-      }
+      const trxErr = validateTrxId(paymentData.trxId, paymentMethod);
+      if (trxErr) newErrors.trxId = trxErr;
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    const firstErrorKey = Object.keys(newErrors)[0];
+    if (firstErrorKey) {
+      const el = document.getElementById(`field-${firstErrorKey}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => el.focus(), 300);
+      }
+      return false;
+    }
+
+    return true;
   };
 
   const handleConfirmOrder = () => {
+    if (!requireAuth("Please login to confirm and place your order!", "/Pages/OrderConfirm")) {
+      return;
+    }
+
     if (orderItems.length === 0) {
       toast.error("Your cart is empty! Please add products before checking out.");
       return;
@@ -127,14 +236,17 @@ const OrderConfirmPage = () => {
     const isValid = validateForm();
     if (!isValid) {
       toast.error("Please fill in all required delivery and payment fields correctly! ⚠️");
-      window.scrollTo({ top: 120, behavior: "smooth" });
       return;
     }
 
     setIsLoading(true);
 
     const orderId = `ORD-${Date.now().toString().slice(-6)}`;
-    const fullShippingAddress = `${contactData.streetAddress}, ${contactData.upazila ? contactData.upazila + ", " : ""}${contactData.district}, ${contactData.division}`;
+    const cleanCustomerPhone = normalizeBDPhone(contactData.phone);
+    const cleanWalletNumber = paymentMethod !== "cod" ? normalizeBDPhone(paymentData.walletNumber) : "";
+    const cleanTrxId = paymentMethod !== "cod" ? paymentData.trxId.trim().toUpperCase() : "";
+
+    const fullShippingAddress = `${contactData.streetAddress.trim()}, ${contactData.upazila.trim()}, ${contactData.district}, ${contactData.division}`;
 
     const newOrder = {
       id: `#${orderId}`,
@@ -150,13 +262,13 @@ const OrderConfirmPage = () => {
       items: orderItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
       customer: {
         name: contactData.fullName.trim(),
-        phone: contactData.phone.trim(),
+        phone: cleanCustomerPhone,
         address: fullShippingAddress,
       },
       paymentMethod: paymentMethod.toUpperCase(),
       paymentDetails:
         paymentMethod !== "cod"
-          ? { wallet: paymentData.walletNumber.trim(), trxId: paymentData.trxId.trim().toUpperCase() }
+          ? { wallet: cleanWalletNumber, trxId: cleanTrxId }
           : null,
       deliveryMethod: deliveryMethod === "express" ? "Express (1-2 days)" : "Standard (2-4 days)",
       products: orderItems.map((item) => ({
@@ -232,16 +344,20 @@ const OrderConfirmPage = () => {
               contactData={contactData}
               setContactData={setContactData}
               errors={errors}
+              setErrors={setErrors}
+              onFieldBlur={handleFieldBlur}
             />
             <DeleveryPage
               deliveryMethod={deliveryMethod}
               setDeliveryMethod={setDeliveryMethod}
               paymentMethod={paymentMethod}
-              setPaymentMethod={setPaymentMethod}
+              setPaymentMethod={handlePaymentMethodSelect}
               totalAmount={grandTotal}
               paymentData={paymentData}
               setPaymentData={setPaymentData}
               errors={errors}
+              setErrors={setErrors}
+              onFieldBlur={handleFieldBlur}
             />
           </div>
 

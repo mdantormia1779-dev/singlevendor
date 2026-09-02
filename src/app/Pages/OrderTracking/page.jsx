@@ -17,6 +17,7 @@ import {
   Loader2,
   AlertTriangle,
   X,
+  Package,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -41,6 +42,7 @@ function OrderTrackingContent() {
   const [activeOrderId, setActiveOrderId] = useState(initialOrderId);
   const [apiOrder, setApiOrder] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(initialOrderId));
 
   // Cancellation modal state
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -55,47 +57,64 @@ function OrderTrackingContent() {
   const fetchLiveOrder = async (idToFind, isUserAction = false) => {
     if (!idToFind) return;
     if (isUserAction) setIsSearching(true);
+    else setIsLoading(true);
     try {
       const clean = idToFind.trim().replace(/^#/, "");
       const res = await fetch(`/api/orders/${encodeURIComponent(clean)}`);
-      const data = await res.json();
-      if (data.success && data.order) {
-        setApiOrder(data.order);
-        setActiveOrderId(data.order.id);
-        if (isUserAction) toast.success(`Loaded live tracking for order ${data.order.id}! 🚚`);
-      } else {
-        // Try searching by query
-        const searchRes = await fetch(`/api/orders?search=${encodeURIComponent(clean)}`);
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
+        const data = await res.json();
+        if (data.success && data.order) {
+          setApiOrder(data.order);
+          setActiveOrderId(data.order.id);
+          if (isUserAction) toast.success(`Loaded live tracking for order ${data.order.id}! 🚚`);
+          return;
+        }
+      }
+
+      // Try searching by query
+      const searchRes = await fetch(`/api/orders?search=${encodeURIComponent(clean)}`);
+      if (searchRes.ok && searchRes.headers.get("content-type")?.includes("application/json")) {
         const searchData = await searchRes.json();
         if (searchData.success && searchData.orders && searchData.orders.length > 0) {
           setApiOrder(searchData.orders[0]);
           setActiveOrderId(searchData.orders[0].id);
           if (isUserAction) toast.success(`Found order ${searchData.orders[0].id}! 🚚`);
-        } else {
-          setApiOrder(null);
-          if (isUserAction) toast.warning(`Order "${idToFind}" not found in database.`);
+          return;
         }
       }
+
+      setApiOrder(null);
+      if (isUserAction) toast.warning(`Order "${idToFind}" not found in database.`);
     } catch (err) {
       console.error("Order tracking fetch error:", err);
     } finally {
       if (isUserAction) setIsSearching(false);
+      else setIsLoading(false);
     }
   };
 
   useEffect(() => {
     dispatch(loadStoredOrders());
     if (initialOrderId) {
+      setIsLoading(true);
       const clean = initialOrderId.trim().replace(/^#/, "");
       fetch(`/api/orders/${encodeURIComponent(clean)}`)
-        .then((res) => res.json())
+        .then(async (res) => {
+          if (!res.ok) return null;
+          const contentType = res.headers.get("content-type") || "";
+          if (!contentType.includes("application/json")) return null;
+          return res.json();
+        })
         .then((data) => {
-          if (data.success && data.order) {
+          if (data && data.success && data.order) {
             setApiOrder(data.order);
             setActiveOrderId(data.order.id);
+          } else {
+            setApiOrder(null);
           }
         })
-        .catch((err) => console.error("Initial order tracking fetch error:", err));
+        .catch((err) => console.error("Initial order tracking fetch error:", err))
+        .finally(() => setIsLoading(false));
     }
   }, [initialOrderId, dispatch]);
 
@@ -106,42 +125,19 @@ function OrderTrackingContent() {
     if (activeOrderId) {
       const clean = activeOrderId.trim().replace(/^#/, "").toLowerCase();
       const foundInRedux = reduxOrders.find(
-        (o) => o.id?.replace(/^#/, "").toLowerCase() === clean
+        (o) => (o?.id || "").replace(/^#/, "").toLowerCase() === clean
       );
       if (foundInRedux) return foundInRedux;
     }
 
-    if (reduxOrders.length > 0) return reduxOrders[0];
+    if (!initialOrderId && reduxOrders.length > 0) return reduxOrders[0];
 
-    return {
-      id: "#ORD-998241",
-      date: "May 28, 2026",
-      status: "Processing",
-      total: 3450,
-      subtotal: 3330,
-      deliveryFee: 120,
-      paymentMethod: "BKASH",
-      customer: {
-        name: "Tanvir Ahmed",
-        phone: "01711223344",
-        address: "House 24, Road 7, Banani, Dhaka, Bangladesh",
-      },
-      deliveryMethod: "Express (1-2 days)",
-      products: [
-        {
-          id: 1,
-          name: "Neptune Long-sleeve Shirt",
-          qty: 1,
-          price: 1450,
-          image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80",
-        },
-      ],
-    };
-  }, [apiOrder, activeOrderId, reduxOrders]);
+    return null;
+  }, [apiOrder, activeOrderId, reduxOrders, initialOrderId]);
 
   // GSAP animation when order changes
   useEffect(() => {
-    if (trackingCardRef.current) {
+    if (displayOrder && trackingCardRef.current) {
       gsap.fromTo(
         trackingCardRef.current,
         { opacity: 0, y: 20 },
@@ -209,36 +205,39 @@ function OrderTrackingContent() {
     return currentLevel >= targetLevel;
   };
 
-  const timeline = [
-    {
-      step: "Pending",
-      title: "1. Order Received",
-      desc: "Your order is queued in the database and pending fulfillment.",
-      time: `${displayOrder.date || "Recent"} • Instant`,
-      active: getStepActive("Pending"),
-    },
-    {
-      step: "Confirmed",
-      title: "2. Order Confirmed & Verified",
-      desc: "Payment verified and inventory allocated in warehouse.",
-      time: `${displayOrder.date || "Recent"} • Verified`,
-      active: getStepActive("Confirmed"),
-    },
-    {
-      step: "Processing",
-      title: "3. Packaging & Courier Dispatch",
-      desc: "Quality inspection passed and parcel handed to delivery rider.",
-      time: "In Transit with Courier",
-      active: getStepActive("Processing"),
-    },
-    {
-      step: "Delivered",
-      title: "4. Delivered & Completed",
-      desc: "Parcel safely delivered to recipient's doorstep.",
-      time: currentStatus === "Delivered" ? "Delivered to Customer" : "Estimated in 1-2 days",
-      active: getStepActive("Delivered"),
-    },
-  ];
+  const timeline = useMemo(() => {
+    if (!displayOrder) return [];
+    return [
+      {
+        step: "Pending",
+        title: "1. Order Received",
+        desc: "Your order is queued in the database and pending fulfillment.",
+        time: `${displayOrder?.date || "Recent"} • Instant`,
+        active: getStepActive("Pending"),
+      },
+      {
+        step: "Confirmed",
+        title: "2. Order Confirmed & Verified",
+        desc: "Payment verified and inventory allocated in warehouse.",
+        time: `${displayOrder?.date || "Recent"} • Verified`,
+        active: getStepActive("Confirmed"),
+      },
+      {
+        step: "Processing",
+        title: "3. Packaging & Courier Dispatch",
+        desc: "Quality inspection passed and parcel handed to delivery rider.",
+        time: "In Transit with Courier",
+        active: getStepActive("Processing"),
+      },
+      {
+        step: "Delivered",
+        title: "4. Delivered & Completed",
+        desc: "Parcel safely delivered to recipient's doorstep.",
+        time: currentStatus === "Delivered" ? "Delivered to Customer" : "Estimated in 1-2 days",
+        active: getStepActive("Delivered"),
+      },
+    ];
+  }, [displayOrder, currentStatus]);
 
   return (
     <section className="bg-slate-50 min-h-screen py-10 px-4 sm:px-6 font-sans">
@@ -253,7 +252,7 @@ function OrderTrackingContent() {
               <span className="text-xs text-gray-400 font-medium">Synced with Admin Dashboard</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-2 tracking-tight">
-              Order Tracking: <span className="text-emerald-600 font-mono">{displayOrder.id}</span>
+              Order Tracking: <span className="text-emerald-600 font-mono">{displayOrder?.id || "Lookup"}</span>
             </h1>
             <p className="text-gray-500 mt-1 text-xs sm:text-sm">
               Real-time fulfillment updates direct from Finora database
@@ -292,6 +291,39 @@ function OrderTrackingContent() {
           </div>
         </div>
 
+        {isLoading ? (
+          <div className="bg-white rounded-3xl border border-slate-200 p-12 sm:p-16 text-center max-w-xl mx-auto space-y-4 my-8 shadow-xs">
+            <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+              <Loader2 size={28} className="animate-spin" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">Fetching Live Order Tracking...</h2>
+            <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+              Retrieving latest fulfillment and courier status from Finora database.
+            </p>
+          </div>
+        ) : !displayOrder ? (
+          <div className="bg-white rounded-3xl border border-slate-200 p-10 sm:p-16 text-center max-w-xl mx-auto space-y-4 my-8 shadow-xs">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+              <Package size={32} />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">No Order Found or Selected</h2>
+            <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+              Enter your real Order ID or Phone number in the search bar above to track your order in real-time, or check your past orders.
+            </p>
+            <div className="pt-3 flex justify-center gap-3">
+              <Link href="/Pages/AllProduct">
+                <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-pointer">
+                  Browse Products
+                </button>
+              </Link>
+              <Link href="/Dashboard/user/Orders">
+                <button className="border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-pointer">
+                  My Orders
+                </button>
+              </Link>
+            </div>
+          </div>
+        ) : (
         <div ref={trackingCardRef} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Left Column: Status Banner & Dynamic Timeline */}
           <div className="lg:col-span-2 space-y-6">
@@ -406,11 +438,11 @@ function OrderTrackingContent() {
             {/* Ordered Items List */}
             <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs">
               <h2 className="font-extrabold text-lg text-gray-900 mb-4">
-                Ordered Products ({displayOrder.products?.length || 0})
+                Ordered Products ({displayOrder?.products?.length || 0})
               </h2>
 
               <div className="space-y-3">
-                {displayOrder.products?.map((prod, idx) => (
+                {displayOrder?.products?.map((prod, idx) => (
                   <div
                     key={prod.id || idx}
                     className="border border-slate-100 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-slate-200 transition bg-slate-50/30"
@@ -468,10 +500,10 @@ function OrderTrackingContent() {
                     Shipping Address
                   </p>
                   <p className="font-semibold text-gray-800">
-                    {displayOrder.customer?.name || displayOrder.customerName}
+                    {displayOrder?.customer?.name || displayOrder?.customerName}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {displayOrder.customer?.address || displayOrder.customerAddress || "Dhaka, Bangladesh"}
+                    {displayOrder?.customer?.address || displayOrder?.customerAddress || "Dhaka, Bangladesh"}
                   </p>
                 </div>
               </div>
@@ -485,7 +517,7 @@ function OrderTrackingContent() {
                     Contact Phone
                   </p>
                   <p className="text-gray-600 font-mono">
-                    {displayOrder.customer?.phone || displayOrder.customerPhone || "+880 1577147480"}
+                    {displayOrder?.customer?.phone || displayOrder?.customerPhone || "+880 1577147480"}
                   </p>
                 </div>
               </div>
@@ -500,13 +532,13 @@ function OrderTrackingContent() {
               <div className="flex justify-between text-gray-600 text-xs">
                 <span>Subtotal</span>
                 <span className="font-bold text-gray-900">
-                  ৳{Number(displayOrder.subtotal || displayOrder.total || 0).toLocaleString()}
+                  ৳{Number(displayOrder?.subtotal || displayOrder?.total || 0).toLocaleString()}
                 </span>
               </div>
 
               <div className="flex justify-between text-gray-600 text-xs">
                 <span>Delivery Charge</span>
-                <span className="font-bold text-gray-900">৳{displayOrder.deliveryFee || 60}</span>
+                <span className="font-bold text-gray-900">৳{displayOrder?.deliveryFee || 60}</span>
               </div>
 
               <hr className="border-slate-100 my-2" />
@@ -514,14 +546,14 @@ function OrderTrackingContent() {
               <div className="flex justify-between font-extrabold text-base text-gray-900">
                 <span>Grand Total</span>
                 <span className="text-emerald-600 text-lg">
-                  ৳{Number(displayOrder.total || 0).toLocaleString()}
+                  ৳{Number(displayOrder?.total || 0).toLocaleString()}
                 </span>
               </div>
 
               <div className="flex items-center gap-2 pt-2 text-xs text-gray-500 font-medium">
                 <CircleDollarSign className="text-emerald-600" size={16} />
                 <span>
-                  Payment Method: <strong className="uppercase text-gray-900">{displayOrder.paymentMethod}</strong>
+                  Payment Method: <strong className="uppercase text-gray-900">{displayOrder?.paymentMethod || "COD"}</strong>
                 </span>
               </div>
 
@@ -544,6 +576,7 @@ function OrderTrackingContent() {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {/* Cancel Order Modal */}
@@ -562,7 +595,7 @@ function OrderTrackingContent() {
                 <AlertTriangle size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-extrabold text-gray-900">Cancel Order {displayOrder.id}?</h3>
+                <h3 className="text-lg font-extrabold text-gray-900">Cancel Order {displayOrder?.id}?</h3>
                 <p className="text-xs text-gray-500">Please choose why you want to cancel this order</p>
               </div>
             </div>

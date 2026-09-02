@@ -18,11 +18,13 @@ import { toggleWishlist } from "@/app/store/wishlistSlice";
 
 import { toast } from "react-toastify";
 import gsap from "gsap";
+import { useAuthGuard } from "@/lib/useAuthGuard";
 
 const DetailsPage = () => {
   const params = useParams();
   const router = useRouter();
   const dispatch = useDispatch();
+  const { requireAuth } = useAuthGuard();
 
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistItems = useSelector((state) => state.wishlist.items);
@@ -105,6 +107,10 @@ const DetailsPage = () => {
 
   // Add to Cart handler
   const handleAddToCart = () => {
+    if (!requireAuth("Please login to add items to your cart!")) {
+      return;
+    }
+
     dispatch(
       addToCart({
         ...product,
@@ -116,6 +122,10 @@ const DetailsPage = () => {
 
   // Buy Now handler
   const handleBuyNow = () => {
+    if (!requireAuth("Please login to proceed to checkout!", "/Pages/OrderConfirm")) {
+      return;
+    }
+
     dispatch(
       setBuyNowItem({
         ...product,
@@ -274,7 +284,10 @@ const DetailsPage = () => {
             </Button>
 
             <button
-              onClick={() => dispatch(toggleWishlist(product))}
+              onClick={() => {
+                if (!requireAuth("Please login to save items to your wishlist!")) return;
+                dispatch(toggleWishlist(product));
+              }}
               className={`h-13 w-13 rounded-2xl border flex items-center justify-center shrink-0 transition cursor-pointer ${
                 isWishlisted
                   ? "bg-rose-50 border-rose-200 text-rose-600"

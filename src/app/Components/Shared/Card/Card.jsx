@@ -15,11 +15,13 @@ import { addToCart, setBuyNowItem } from "../../../store/cartSlice";
 import { toggleWishlist } from "../../../store/wishlistSlice";
 import { toast } from "react-toastify";
 import Image from "next/image";
+import { useAuthGuard } from "@/lib/useAuthGuard";
 
 const Card = ({ product }) => {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const dispatch = useDispatch();
+  const { requireAuth } = useAuthGuard();
 
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistItems = useSelector((state) => state.wishlist.items);
@@ -30,6 +32,11 @@ const Card = ({ product }) => {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!requireAuth("Please login to add items to your cart!")) {
+      return;
+    }
+
     const exists = cartItems.find((item) => item.id === product.id);
 
     if (exists) {
@@ -44,6 +51,11 @@ const Card = ({ product }) => {
   const handleBuyNow = (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!requireAuth("Please login to proceed to checkout!", "/Pages/OrderConfirm")) {
+      return;
+    }
+
     const priceNum = typeof product.price === "string" ? parseFloat(product.price.replace(/,/g, "")) : Number(product.price);
     dispatch(
       setBuyNowItem({
@@ -59,6 +71,11 @@ const Card = ({ product }) => {
   const handleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!requireAuth("Please login to save items to your wishlist!")) {
+      return;
+    }
+
     dispatch(toggleWishlist(product));
     if (isWishlisted) {
       toast.info("Removed from wishlist");

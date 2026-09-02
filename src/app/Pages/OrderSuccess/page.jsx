@@ -15,7 +15,7 @@ const OrderSuccess = () => {
   const orders = useSelector((state) => state.cart.orders) || [];
   const latestOrder = orders.length > 0 ? orders[0] : null;
 
-  const orderNumber = latestOrder?.id || "#ORD-861964";
+  const orderNumber = latestOrder?.id || "";
   const orderTotal = latestOrder?.total || 0;
   const paymentMethod = latestOrder?.paymentMethod || "Cash on Delivery";
   const orderDate = latestOrder?.date || new Date().toLocaleDateString();
@@ -49,20 +49,44 @@ const OrderSuccess = () => {
           ref={detailsRef}
           className="w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-10"
         >
-          {/* Success Icon */}
-          <div className="flex justify-center">
-            <div
-              ref={iconRef}
-              className="w-24 h-24 rounded-3xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center shadow-lg shadow-emerald-100"
-            >
-              <CheckCircle2 size={54} className="text-emerald-600" strokeWidth={2.5} />
+          {!latestOrder ? (
+            <div className="text-center py-10 space-y-4">
+              <div className="w-20 h-20 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <Package size={36} />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">No Recent Order Found</h2>
+              <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
+                You haven&apos;t placed an order in this active session yet, or your past orders are recorded in your user account.
+              </p>
+              <div className="pt-4 flex justify-center gap-3">
+                <Link href="/Pages/AllProduct">
+                  <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-pointer">
+                    Browse Catalog
+                  </button>
+                </Link>
+                <Link href="/Dashboard/user/Orders">
+                  <button className="border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-pointer">
+                    View My Orders
+                  </button>
+                </Link>
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Success Icon */}
+              <div className="flex justify-center">
+                <div
+                  ref={iconRef}
+                  className="w-24 h-24 rounded-3xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center shadow-lg shadow-emerald-100"
+                >
+                  <CheckCircle2 size={54} className="text-emerald-600" strokeWidth={2.5} />
+                </div>
+              </div>
 
-          {/* Heading */}
-          <h1 className="text-center text-2xl sm:text-3xl font-extrabold text-gray-900 mt-6 tracking-tight">
-            Order Confirmed & Placed! 🎉
-          </h1>
+              {/* Heading */}
+              <h1 className="text-center text-2xl sm:text-3xl font-extrabold text-gray-900 mt-6 tracking-tight">
+                Order Confirmed & Placed! 🎉
+              </h1>
 
           <p className="text-center text-gray-500 text-xs sm:text-sm mt-2 max-w-md mx-auto leading-relaxed">
             Thank you for shopping with Finora! Your order has been placed and is currently being processed by our fulfillment team.
@@ -163,7 +187,9 @@ const OrderSuccess = () => {
               <Home size={14} /> Continue Shopping at Finora <ArrowRight size={12} />
             </Link>
           </div>
-        </div>
+        </>
+      )}
+    </div>
 
         {/* Live Delivery Stepper Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 w-full">

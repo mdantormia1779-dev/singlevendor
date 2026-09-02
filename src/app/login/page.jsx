@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "@/app/store/authSlice";
 import { signIn } from "@/lib/auth-client";
@@ -36,8 +36,10 @@ const emailSchema = yup.object().shape({
     .required("Password is required"),
 });
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
   const dispatch = useDispatch();
   const cardRef = useRef(null);
 
@@ -82,7 +84,9 @@ export default function LoginPage() {
         dispatch(loginSuccess(result.user));
         toast.success(`Welcome back, ${result.user.name}! 🎉`);
 
-        if (result.user.role === "admin" || result.user.role === "SUPER_ADMIN") {
+        if (redirectUrl && redirectUrl.startsWith("/")) {
+          router.push(redirectUrl);
+        } else if (result.user.role === "admin" || result.user.role === "SUPER_ADMIN") {
           router.push("/Dashboard/admin");
         } else {
           router.push("/Dashboard/user");
@@ -99,14 +103,16 @@ export default function LoginPage() {
   // 2. Real Google Sign-In with Better Auth
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
+    const targetCallback = redirectUrl && redirectUrl.startsWith("/") ? redirectUrl : "/Dashboard/user";
+
     try {
       if (signIn?.social) {
         await signIn.social({
           provider: "google",
-          callbackURL: "/Dashboard/user",
+          callbackURL: targetCallback,
         });
       } else {
-        window.location.href = "/api/auth/sign-in/social?provider=google&callbackURL=/Dashboard/user";
+        window.location.assign(`/api/auth/sign-in/social?provider=google&callbackURL=${encodeURIComponent(targetCallback)}`);
       }
     } catch (err) {
       console.error("Google login error:", err);
@@ -262,5 +268,13 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-bold text-slate-500">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

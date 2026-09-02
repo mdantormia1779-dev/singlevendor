@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Mail, Phone, MapPin, UserCheck, Shield, ShoppingBag, Plus, Trash2, Edit2, X, RefreshCw } from "lucide-react";
+import { Search, Mail, Phone, MapPin, UserCheck, Shield, ShoppingBag, Plus, Trash2, Edit2, X, RefreshCw, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import Image from "next/image";
 
@@ -10,6 +10,8 @@ export default function AdminCustomersPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     email: "",
@@ -17,20 +19,7 @@ export default function AdminCustomersPage() {
     role: "customer",
   });
 
-  const loadUsers = () => {
-    setLoading(true);
-    fetch("/api/users")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.users) {
-          setCustomers(data.users);
-        }
-      })
-      .catch((err) => console.error("Error fetching users:", err))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
+  const loadUsers = React.useCallback(() => {
     fetch("/api/users")
       .then((res) => res.json())
       .then((data) => {
@@ -41,6 +30,34 @@ export default function AdminCustomersPage() {
       .catch((err) => console.error("Error fetching users:", err))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeleting(true);
+
+    try {
+      const res = await fetch(`/api/users?id=${encodeURIComponent(userToDelete.id)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`User ${userToDelete.name} deleted successfully.`);
+        setUserToDelete(null);
+        loadUsers();
+      } else {
+        toast.error(data.error || "Failed to delete user.");
+      }
+    } catch (err) {
+      console.error("Delete user error:", err);
+      toast.error("Network error while deleting user.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const filteredCustomers = customers.filter(
     (c) =>
@@ -68,7 +85,7 @@ export default function AdminCustomersPage() {
         toast.success(`User ${newCustomer.name} created successfully in database! 🎉`);
         setIsAddModalOpen(false);
         setNewCustomer({ name: "", email: "", phone: "", role: "customer" });
-        fetchUsers();
+        loadUsers();
       } else {
         toast.error(data.error || "Failed to create user");
       }
@@ -131,18 +148,19 @@ export default function AdminCustomersPage() {
                 <th className="py-4 px-4 text-center">Orders</th>
                 <th className="py-4 px-4">Total Spent</th>
                 <th className="py-4 px-4">Status</th>
+                <th className="py-4 px-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-500">
+                  <td colSpan={7} className="py-12 text-center text-gray-500">
                     Loading users from PostgreSQL database...
                   </td>
                 </tr>
               ) : filteredCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-500">
+                  <td colSpan={7} className="py-12 text-center text-gray-500">
                     No users found matching your search.
                   </td>
                 </tr>
@@ -191,6 +209,15 @@ export default function AdminCustomersPage() {
                       >
                         {cust.status}
                       </span>
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <button
+                        onClick={() => setUserToDelete(cust)}
+                        className="inline-flex items-center bg-gray-100 hover:bg-rose-50 hover:text-rose-700 text-gray-500 p-2 rounded-xl transition cursor-pointer"
+                        title="Delete User"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -261,6 +288,67 @@ export default function AdminCustomersPage() {
                 Save to Database
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete User Confirmation Modal */}
+      {userToDelete && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 font-sans">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative">
+            <button
+              onClick={() => !isDeleting && setUserToDelete(null)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-gray-900">
+                  Delete User {userToDelete.name}?
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {userToDelete.email} • {userToDelete.role}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600 my-4">
+              Are you sure you want to permanently delete this user account from the database? This action cannot be undone.
+            </p>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setUserToDelete(null)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteUser}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-md shadow-rose-200 cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    <span>Delete User</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

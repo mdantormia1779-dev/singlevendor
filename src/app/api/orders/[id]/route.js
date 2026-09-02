@@ -1,6 +1,27 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+function formatOrder(order) {
+  return {
+    ...order,
+    customer: {
+      name: order.customerName,
+      phone: order.customerPhone,
+      address: order.customerAddress,
+    },
+    date: order.createdAt
+      ? new Date(order.createdAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      : "Recent",
+    paymentDetails: order.paymentTrxId
+      ? { wallet: order.paymentWallet, trxId: order.paymentTrxId }
+      : null,
+  };
+}
+
 // GET /api/orders/[id]
 export async function GET(request, { params }) {
   try {
@@ -25,24 +46,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
     }
 
-    const mappedOrder = {
-      ...order,
-      customer: {
-        name: order.customerName,
-        phone: order.customerPhone,
-        address: order.customerAddress,
-      },
-      date: new Date(order.createdAt).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-      paymentDetails: order.paymentTrxId
-        ? { wallet: order.paymentWallet, trxId: order.paymentTrxId }
-        : null,
-    };
-
-    return NextResponse.json({ success: true, order: mappedOrder });
+    return NextResponse.json({ success: true, order: formatOrder(order) });
   } catch (error) {
     console.error("GET /api/orders/[id] error:", error);
     return NextResponse.json({ success: false, error: "Failed to fetch order" }, { status: 500 });
@@ -83,7 +87,7 @@ export async function PATCH(request, { params }) {
       },
     });
 
-    return NextResponse.json({ success: true, order: updated });
+    return NextResponse.json({ success: true, order: formatOrder(updated) });
   } catch (error) {
     console.error("PATCH /api/orders/[id] error:", error);
     return NextResponse.json({ success: false, error: "Failed to update order status" }, { status: 500 });
@@ -96,23 +100,35 @@ export async function DELETE(request, { params }) {
     const { id } = await params;
     const rawId = decodeURIComponent(id);
     const cleanId = rawId.startsWith("#") ? rawId : `#${rawId}`;
+    const noHashId = rawId.replace(/^#/, "");
 
     const existing = await prisma.order.findFirst({
       where: {
         OR: [
           { id: cleanId },
           { id: rawId },
+          { id: noHashId },
         ],
       },
     });
 
-    if (existing) {
-      await prisma.order.delete({
-        where: { id: existing.id },
-      });
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, message: "Order deleted successfully" });
+    // Delete associated order items first to prevent FK constraint issues
+    await prisma.orderItem.deleteMany({
+      where: { orderId: existing.id },
+    });
+
+    await prisma.order.delete({
+      where: { id: existing.id },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `Order ${existing.id} deleted successfully`,
+    });
   } catch (error) {
     console.error("DELETE /api/orders/[id] error:", error);
     return NextResponse.json({ success: false, error: "Failed to delete order" }, { status: 500 });

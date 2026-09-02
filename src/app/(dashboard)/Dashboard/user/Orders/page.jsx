@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
-import { loadStoredOrders, updateOrderStatus } from "@/app/store/cartSlice";
-import { Truck, ArrowRight, ShoppingBag, XCircle, AlertTriangle, Loader2, X } from "lucide-react";
+import { loadStoredOrders, updateOrderStatus, deleteOrder } from "@/app/store/cartSlice";
+import { Truck, ArrowRight, ShoppingBag, XCircle, AlertTriangle, Loader2, X, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import gsap from "gsap";
 
@@ -29,6 +29,8 @@ const MyOrders = () => {
   const [selectedReason, setSelectedReason] = useState(CANCEL_REASONS[0]);
   const [customReason, setCustomReason] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const ordersContainerRef = useRef(null);
 
@@ -38,15 +40,13 @@ const MyOrders = () => {
     fetch("/api/orders")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.orders && data.orders.length > 0) {
+        if (data.success && data.orders) {
           setOrders(data.orders);
-        } else {
-          setOrders(reduxOrders);
         }
       })
-      .catch(() => setOrders(reduxOrders))
+      .catch((err) => console.error("Orders fetch error:", err))
       .finally(() => setLoading(false));
-  }, [dispatch, reduxOrders]);
+  }, [dispatch]);
 
   useEffect(() => {
     if (!loading && ordersContainerRef.current && ordersContainerRef.current.children.length > 0) {
@@ -96,6 +96,34 @@ const MyOrders = () => {
       toast.error("Network error while cancelling order.");
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    setIsDeleting(true);
+
+    const orderId = orderToDelete.id;
+
+    try {
+      const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setOrders((prev) => prev.filter((o) => o.id !== orderId));
+        dispatch(deleteOrder(orderId));
+        toast.success(`Order ${orderId} has been deleted.`);
+        setOrderToDelete(null);
+      } else {
+        toast.error(data.error || "Failed to delete order.");
+      }
+    } catch (err) {
+      console.error("Delete order error:", err);
+      toast.error("Network error while deleting order.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -228,6 +256,17 @@ const MyOrders = () => {
                       </button>
                     )}
 
+                    {(order.status === "Cancelled" || order.status === "Delivered") && (
+                      <button
+                        onClick={() => setOrderToDelete(order)}
+                        className="border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 transition cursor-pointer"
+                        title="Delete from history"
+                      >
+                        <Trash2 size={15} />
+                        <span>Delete</span>
+                      </button>
+                    )}
+
                     <Link
                       href={`/Pages/OrderTracking?orderId=${encodeURIComponent(order.id.replace("#", ""))}`}
                     >
@@ -322,6 +361,67 @@ const MyOrders = () => {
               >
                 {isCancelling && <Loader2 size={15} className="animate-spin" />}
                 <span>{isCancelling ? "Cancelling..." : "Confirm Cancellation"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Order Confirmation Modal */}
+      {orderToDelete && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 font-sans">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative">
+            <button
+              onClick={() => !isDeleting && setOrderToDelete(null)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-gray-900">
+                  Delete Order {orderToDelete.id}?
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Remove this order from your account history
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600 my-4">
+              Are you sure you want to permanently delete this order record? You will no longer be able to track it.
+            </p>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setOrderToDelete(null)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteOrder}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-md shadow-rose-200 cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    <span>Delete Record</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

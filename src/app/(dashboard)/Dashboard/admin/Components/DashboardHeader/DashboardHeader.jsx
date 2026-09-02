@@ -29,6 +29,7 @@ export default function DashboardHeader() {
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   const userName = authUser?.name || authUser?.fullName || "Md Antor Mia (admin)";
   const userEmail = authUser?.email || "superadmin@erp.com";
@@ -38,11 +39,22 @@ export default function DashboardHeader() {
     authUser?.image ||
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80";
 
-  const notifications = [
-    { id: 1, title: "New Order #ORD-998241", desc: "Tanvir Ahmed placed an order for ৳3,450", time: "5 mins ago" },
-    { id: 2, title: "Low Stock Warning", desc: "Wireless ANC Headphones is low in stock (8 left)", time: "1 hour ago" },
-    { id: 3, title: "New Customer Signup", desc: "Sadia Rahman registered an account", time: "3 hours ago" },
-  ];
+  React.useEffect(() => {
+    fetch("/api/orders?limit=4")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.orders) {
+          const mapped = data.orders.map((o) => ({
+            id: o.id,
+            title: `Order ${o.id}`,
+            desc: `${o.customer?.name || "Customer"} ordered for ৳${Number(o.total || 0).toLocaleString()}`,
+            time: o.date || new Date(o.createdAt).toLocaleDateString(),
+          }));
+          setNotifications(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -108,13 +120,17 @@ export default function DashboardHeader() {
               </div>
 
               <div className="space-y-2.5">
-                {notifications.map((n) => (
-                  <div key={n.id} className="p-2.5 rounded-2xl bg-gray-50/70 hover:bg-gray-100 transition">
-                    <p className="text-xs font-bold text-gray-900">{n.title}</p>
-                    <p className="text-[11px] text-gray-500 mt-0.5">{n.desc}</p>
-                    <span className="text-[10px] text-gray-400 mt-1 block">{n.time}</span>
-                  </div>
-                ))}
+                {notifications.length === 0 ? (
+                  <p className="text-xs text-gray-400 text-center py-4">No recent orders or alerts</p>
+                ) : (
+                  notifications.map((n) => (
+                    <div key={n.id} className="p-2.5 rounded-2xl bg-gray-50/70 hover:bg-gray-100 transition">
+                      <p className="text-xs font-bold text-gray-900">{n.title}</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">{n.desc}</p>
+                      <span className="text-[10px] text-gray-400 mt-1 block">{n.time}</span>
+                    </div>
+                  ))
+                )}
               </div>
 
               <Link

@@ -67,6 +67,16 @@ export async function DELETE(request, { params }) {
     const { id } = await params;
     const productId = parseInt(id);
 
+    if (isNaN(productId)) {
+      return NextResponse.json({ success: false, error: "Invalid product ID" }, { status: 400 });
+    }
+
+    // Disconnect product from any historic order items first to prevent FK constraint error
+    await prisma.orderItem.updateMany({
+      where: { productId },
+      data: { productId: null },
+    });
+
     await prisma.product.delete({
       where: { id: productId },
     });

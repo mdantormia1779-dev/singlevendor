@@ -78,27 +78,15 @@ export default function AdminDashboard() {
     if (analytics?.revenueTimeline7d && analytics.revenueTimeline7d.length > 0) {
       return analytics.revenueTimeline7d;
     }
-    return [
-      { name: "Mon", revenue: 14500, orders: 12 },
-      { name: "Tue", revenue: 22000, orders: 18 },
-      { name: "Wed", revenue: 18500, orders: 15 },
-      { name: "Thu", revenue: 29000, orders: 24 },
-      { name: "Fri", revenue: 34000, orders: 28 },
-      { name: "Sat", revenue: 42500, orders: 36 },
-      { name: "Sun", revenue: 38000, orders: 31 },
-    ];
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return days.map((day) => ({ name: day, revenue: 0, orders: 0 }));
   }, [analytics]);
 
   const categoryShareData = useMemo(() => {
     if (analytics?.categoryShare && analytics.categoryShare.length > 0) {
       return analytics.categoryShare;
     }
-    return [
-      { name: "Fashion", value: 40 },
-      { name: "Electronics", value: 25 },
-      { name: "Home & Living", value: 20 },
-      { name: "Gadgets", value: 15 },
-    ];
+    return [];
   }, [analytics]);
 
   return (
