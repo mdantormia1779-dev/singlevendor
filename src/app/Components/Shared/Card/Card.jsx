@@ -100,7 +100,7 @@ const Card = ({ product }) => {
       : ["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80"];
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl duration-300 flex flex-col justify-between group">
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group">
       {/* Image Slider Section */}
       <div className="relative overflow-hidden group">
         <Link href={`/Pages/Details/${product.id}`} className="block">

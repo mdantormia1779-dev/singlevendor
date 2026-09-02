@@ -44,3 +44,35 @@ export const animateFadeInUp = (target, options = {}) => {
     }
   );
 };
+
+/**
+ * Smooth card hover micro-interaction
+ */
+export const animateCardHover = (element, isHovered) => {
+  if (!element) return;
+  if (isHovered) {
+    gsap.to(element, {
+      y: -5,
+      duration: 0.28,
+      ease: "power2.out",
+    });
+  } else {
+    gsap.to(element, {
+      y: 0,
+      duration: 0.32,
+      ease: "power2.out",
+    });
+  }
+};
+
+/**
+ * Smooth entrance for badges and floating elements
+ */
+export const animateFloatingPill = (target) => {
+  if (!target) return null;
+  return gsap.fromTo(
+    target,
+    { scale: 0.88, opacity: 0 },
+    { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }
+  );
+};

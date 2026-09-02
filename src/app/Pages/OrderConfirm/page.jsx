@@ -285,15 +285,22 @@ const OrderConfirmPage = () => {
       })),
     };
 
-    // Save to Prisma Database & Redux
-    fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newOrder),
-    }).catch((err) => console.error("Prisma order sync:", err));
+    try {
+      // Save to Prisma Database & Redux
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newOrder),
+      });
 
-    setTimeout(() => {
-      dispatch(addOrder(newOrder));
+      if (!res.ok) {
+        throw new Error("Failed to create order in database");
+      }
+
+      const data = await res.json();
+      const savedOrder = data.order || newOrder;
+
+      dispatch(addOrder(savedOrder));
       if (buyNowItem) {
         dispatch(clearBuyNowItem());
       } else {
@@ -302,7 +309,12 @@ const OrderConfirmPage = () => {
 
       toast.success("Order placed successfully! 🎉");
       router.push("/Pages/OrderSuccess");
-    }, 400);
+    } catch (err) {
+      console.error("Prisma order sync error:", err);
+      toast.error("Failed to place order. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

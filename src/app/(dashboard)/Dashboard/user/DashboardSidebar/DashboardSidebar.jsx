@@ -29,18 +29,32 @@ const DashboardSidebar = () => {
   const rawOrders = useSelector((state) => state.cart.orders) || [];
   const wishlistItems = useSelector((state) => state.wishlist.items) || [];
 
-  const userOrders = React.useMemo(() => {
-    if (!rawOrders || !authUser) return [];
-    return rawOrders.filter((o) => {
-      const cleanTargetPhone = authUser.phone ? authUser.phone.replace(/[^\d]/g, "").slice(-11) : "";
-      const orderPhone = o.customer?.phone ? o.customer.phone.replace(/[^\d]/g, "").slice(-11) : "";
+  const [dbOrdersCount, setDbOrdersCount] = React.useState(null);
 
-      if (o.userId && authUser.id && o.userId === authUser.id) return true;
-      if (cleanTargetPhone && orderPhone && cleanTargetPhone === orderPhone) return true;
-      if (authUser.email && o.customer?.email && authUser.email.toLowerCase() === o.customer.email.toLowerCase()) return true;
-      return false;
-    });
-  }, [rawOrders, authUser]);
+  React.useEffect(() => {
+    if (authUser?.id) {
+      fetch(`/api/orders?userId=${encodeURIComponent(authUser.id)}`)
+        .then((res) => {
+          if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
+            return null;
+          }
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.success && Array.isArray(data.orders)) {
+            setDbOrdersCount(data.orders.length);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [authUser?.id]);
+
+  const userOrders = React.useMemo(() => {
+    if (!rawOrders || !authUser?.id) return [];
+    return rawOrders.filter((o) => o?.userId === authUser.id);
+  }, [rawOrders, authUser?.id]);
+
+  const totalOrdersCount = dbOrdersCount !== null ? dbOrdersCount : userOrders.length;
 
   const userName = authUser?.name || "Customer";
   const userContact = authUser?.email || authUser?.phone || "customer@finora.com";
@@ -93,7 +107,7 @@ const DashboardSidebar = () => {
 
         <div className="flex gap-2">
           <div className="flex-1 bg-gray-50 py-3 rounded-2xl text-center">
-            <p className="text-lg font-bold text-gray-900">{userOrders.length}</p>
+            <p className="text-lg font-bold text-gray-900">{totalOrdersCount}</p>
             <p className="text-xs text-gray-500 font-medium">Orders</p>
           </div>
           <div className="flex-1 bg-gray-50 py-3 rounded-2xl text-center">

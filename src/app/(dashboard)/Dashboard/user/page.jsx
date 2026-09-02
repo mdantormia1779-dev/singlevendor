@@ -13,39 +13,22 @@ export default function DashboardHomePage() {
   const wishlistItems = useSelector((state) => state.wishlist?.items) || [];
   const rawOrders = useSelector((state) => state.cart?.orders);
   const reduxOrders = useMemo(() => {
-    if (!rawOrders || !authUser) return [];
-    return rawOrders.filter((o) => {
-      const cleanTargetPhone = authUser.phone ? authUser.phone.replace(/[^\d]/g, "").slice(-11) : "";
-      const orderPhone = o.customer?.phone ? o.customer.phone.replace(/[^\d]/g, "").slice(-11) : "";
-
-      if (o.userId && authUser.id && o.userId === authUser.id) return true;
-      if (cleanTargetPhone && orderPhone && cleanTargetPhone === orderPhone) return true;
-      if (authUser.email && o.customer?.email && authUser.email.toLowerCase() === o.customer.email.toLowerCase()) return true;
-      return false;
-    });
-  }, [rawOrders, authUser]);
+    if (!rawOrders || !authUser?.id) return [];
+    return rawOrders.filter((o) => o?.userId === authUser.id);
+  }, [rawOrders, authUser?.id]);
 
   const [dbOrders, setDbOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const userName = authUser?.name || "Customer";
 
-  // Fetch real orders from Prisma API for the current user
+  // Fetch real orders from Prisma API strictly for the current user ID
   useEffect(() => {
-    dispatch(loadStoredOrders());
-
-    const activeId = authUser?.id;
-    const activePhone = authUser?.phone;
-    const activeEmail = authUser?.email;
-
-    if (activeId || activePhone || activeEmail) {
+    if (authUser?.id) {
+      dispatch(loadStoredOrders(authUser.id));
       setLoading(true);
-      const params = new URLSearchParams();
-      if (activeId) params.set("userId", activeId);
-      if (activePhone) params.set("phone", activePhone);
-      if (activeEmail) params.set("email", activeEmail);
 
-      fetch(`/api/orders?${params.toString()}`)
+      fetch(`/api/orders?userId=${encodeURIComponent(authUser.id)}`)
         .then((res) => {
           if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
             return null;
@@ -53,7 +36,7 @@ export default function DashboardHomePage() {
           return res.json();
         })
         .then((data) => {
-          if (data && data.success && data.orders) {
+          if (data && data.success && Array.isArray(data.orders)) {
             setDbOrders(data.orders);
           } else {
             setDbOrders([]);
@@ -63,10 +46,11 @@ export default function DashboardHomePage() {
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
+      setDbOrders([]);
     }
-  }, [dispatch, authUser?.id, authUser?.phone, authUser?.email]);
+  }, [dispatch, authUser?.id]);
 
-  const activeOrdersList = dbOrders.length > 0 ? dbOrders : reduxOrders;
+  const activeOrdersList = dbOrders.length > 0 ? dbOrders : (!loading ? [] : reduxOrders);
 
   const totalCount = activeOrdersList.length;
   const deliveredCount = activeOrdersList.filter(

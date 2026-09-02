@@ -10,25 +10,23 @@ const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    // Load persisted orders on client
-    loadStoredOrders: (state) => {
+    // Load persisted orders scoped to active authenticated user
+    loadStoredOrders: (state, action) => {
+      const activeUserId = action.payload || null;
       if (typeof window !== "undefined") {
         try {
-          const stored = localStorage.getItem("finora_orders");
+          if (!activeUserId) {
+            state.orders = [];
+            return;
+          }
+          const stored = localStorage.getItem(`finora_orders_${activeUserId}`);
           if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed)) {
-              // Strip out any stale demo orders
-              const filtered = parsed.filter(
-                (o) => !["#ORD-998241", "#ORD-887123", "#ORD-776109"].includes(o?.id)
-              );
-              if (
-                state.orders.length !== filtered.length ||
-                state.orders.some((o, i) => o?.id !== filtered[i]?.id)
-              ) {
-                state.orders = filtered;
-              }
+              state.orders = parsed.filter((o) => o?.userId === activeUserId);
             }
+          } else {
+            state.orders = [];
           }
         } catch (e) {}
       }
@@ -85,10 +83,14 @@ const cartSlice = createSlice({
 
     // Save Order
     addOrder: (state, action) => {
-      state.orders.unshift(action.payload); // latest first
-      if (typeof window !== "undefined") {
+      const order = action.payload;
+      state.orders.unshift(order);
+      if (typeof window !== "undefined" && order?.userId) {
         try {
-          localStorage.setItem("finora_orders", JSON.stringify(state.orders));
+          localStorage.setItem(
+            `finora_orders_${order.userId}`,
+            JSON.stringify(state.orders.filter((o) => o?.userId === order.userId))
+          );
         } catch (e) {}
       }
     },
@@ -103,11 +105,14 @@ const cartSlice = createSlice({
       );
       if (existing) {
         existing.status = status;
-      }
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem("finora_orders", JSON.stringify(state.orders));
-        } catch (e) {}
+        if (typeof window !== "undefined" && existing?.userId) {
+          try {
+            localStorage.setItem(
+              `finora_orders_${existing.userId}`,
+              JSON.stringify(state.orders.filter((o) => o?.userId === existing.userId))
+            );
+          } catch (e) {}
+        }
       }
     },
 
@@ -115,22 +120,32 @@ const cartSlice = createSlice({
     deleteOrder: (state, action) => {
       const orderId = action.payload;
       const cleanTarget = (orderId || "").replace(/^#/, "").toLowerCase();
+      const deletedOrder = state.orders.find(
+        (o) => (o.id || "").replace(/^#/, "").toLowerCase() === cleanTarget
+      );
       state.orders = state.orders.filter(
         (o) => (o.id || "").replace(/^#/, "").toLowerCase() !== cleanTarget
       );
-      if (typeof window !== "undefined") {
+      if (typeof window !== "undefined" && deletedOrder?.userId) {
         try {
-          localStorage.setItem("finora_orders", JSON.stringify(state.orders));
+          localStorage.setItem(
+            `finora_orders_${deletedOrder.userId}`,
+            JSON.stringify(state.orders.filter((o) => o?.userId === deletedOrder.userId))
+          );
         } catch (e) {}
       }
     },
 
     // Clear All Orders (e.g. on logout)
-    clearOrders: (state) => {
+    clearOrders: (state, action) => {
+      const activeUserId = action.payload || null;
       state.orders = [];
       if (typeof window !== "undefined") {
         try {
           localStorage.removeItem("finora_orders");
+          if (activeUserId) {
+            localStorage.removeItem(`finora_orders_${activeUserId}`);
+          }
         } catch (e) {}
       }
     },

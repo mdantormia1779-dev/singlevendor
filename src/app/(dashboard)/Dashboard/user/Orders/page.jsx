@@ -25,19 +25,11 @@ const MyOrders = () => {
   const authUser = useSelector((state) => state.auth?.user) || guardUser;
   const rawOrders = useSelector((state) => state.cart.orders);
 
-  // Strictly filter Redux orders to only those belonging to the logged-in user
+  // Strictly filter Redux orders to only those belonging to the logged-in user ID
   const reduxOrders = useMemo(() => {
-    if (!rawOrders || !authUser) return [];
-    return rawOrders.filter((o) => {
-      const cleanTargetPhone = authUser.phone ? authUser.phone.replace(/[^\d]/g, "").slice(-11) : "";
-      const orderPhone = o.customer?.phone ? o.customer.phone.replace(/[^\d]/g, "").slice(-11) : "";
-
-      if (o.userId && authUser.id && o.userId === authUser.id) return true;
-      if (cleanTargetPhone && orderPhone && cleanTargetPhone === orderPhone) return true;
-      if (authUser.email && o.customer?.email && authUser.email.toLowerCase() === o.customer.email.toLowerCase()) return true;
-      return false;
-    });
-  }, [rawOrders, authUser]);
+    if (!rawOrders || !authUser?.id) return [];
+    return rawOrders.filter((o) => o?.userId === authUser.id);
+  }, [rawOrders, authUser?.id]);
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,20 +47,11 @@ const MyOrders = () => {
       return;
     }
 
-    dispatch(loadStoredOrders());
-
-    const activeId = authUser?.id;
-    const activePhone = authUser?.phone;
-    const activeEmail = authUser?.email;
-
-    if (activeId || activePhone || activeEmail) {
+    if (authUser?.id) {
+      dispatch(loadStoredOrders(authUser.id));
       setLoading(true);
-      const params = new URLSearchParams();
-      if (activeId) params.set("userId", activeId);
-      if (activePhone) params.set("phone", activePhone);
-      if (activeEmail) params.set("email", activeEmail);
 
-      fetch(`/api/orders?${params.toString()}`)
+      fetch(`/api/orders?userId=${encodeURIComponent(authUser.id)}`)
         .then((res) => {
           if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
             return null;
@@ -76,7 +59,7 @@ const MyOrders = () => {
           return res.json();
         })
         .then((data) => {
-          if (data && data.success && data.orders) {
+          if (data && data.success && Array.isArray(data.orders)) {
             setOrders(data.orders);
           } else {
             setOrders([]);
@@ -86,8 +69,9 @@ const MyOrders = () => {
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
+      setOrders([]);
     }
-  }, [dispatch, authUser?.id, authUser?.phone, authUser?.email, requireAuth]);
+  }, [dispatch, authUser?.id, requireAuth]);
 
   useEffect(() => {
     if (!loading && ordersContainerRef.current && ordersContainerRef.current.children.length > 0) {
@@ -99,7 +83,8 @@ const MyOrders = () => {
     }
   }, [loading, orders]);
 
-  const displayOrders = orders.length > 0 ? orders : reduxOrders;
+  // Strictly user-scoped display orders: once fetched from DB, use DB orders
+  const displayOrders = orders.length > 0 ? orders : (!loading ? [] : reduxOrders);
 
   const handleCancelOrder = async () => {
     if (!cancelModalOrder) return;

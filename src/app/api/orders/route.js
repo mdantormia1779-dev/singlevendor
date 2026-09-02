@@ -30,37 +30,13 @@ export async function GET(request) {
       });
     }
 
-    // Filter by user if userId, email, or phone is specified
-    if (userId || phone || email) {
-      const userFilters = [];
-
-      if (userId) {
-        userFilters.push({ userId: userId });
-
-        // Also check if user has a registered phone number in User table
-        try {
-          const userRecord = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { phone: true, email: true },
-          });
-          if (userRecord?.phone) {
-            const cleanUserPhone = userRecord.phone.replace(/[^\d]/g, "").slice(-11);
-            if (cleanUserPhone) {
-              userFilters.push({ customerPhone: { contains: cleanUserPhone } });
-            }
-          }
-        } catch (e) {}
-      }
-
-      if (phone) {
-        const cleanPhone = phone.replace(/[^\d]/g, "").slice(-11);
-        if (cleanPhone) {
-          userFilters.push({ customerPhone: { contains: cleanPhone } });
-        }
-      }
-
-      if (userFilters.length > 0) {
-        andConditions.push({ OR: userFilters });
+    // Filter strictly by user if userId is provided
+    if (userId) {
+      andConditions.push({ userId: userId });
+    } else if (phone) {
+      const cleanPhone = phone.replace(/[^\d]/g, "").slice(-11);
+      if (cleanPhone) {
+        andConditions.push({ customerPhone: { contains: cleanPhone } });
       }
     }
 
