@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import NavMenu from "./NavMenu/NavMenu";
 import Image from "next/image";
-import logo from "../../../../../public/logo.png";
 import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -28,8 +27,6 @@ import { toast } from "react-toastify";
 const Navbar = () => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const [isBottomVisible, setIsBottomVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -128,24 +125,7 @@ const Navbar = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
 
-      if (currentScrollY < 50) {
-        setIsBottomVisible(true);
-      } else if (currentScrollY > lastScrollY) {
-        setIsBottomVisible(false);
-      } else {
-        setIsBottomVisible(true);
-      }
-
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -271,53 +251,66 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Main Header Container */}
-      <header className="sticky top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md shadow-xs transition-all">
-        {/* Top Announcement & Utility Bar */}
-        <div className="bg-slate-900 text-slate-300 text-[11px] sm:text-xs py-1.5 px-4 border-b border-slate-800 hidden sm:block">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <span className="inline-flex items-center gap-1.5 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-white font-semibold">Special Offer:</span>
-                <span>Free Express Delivery Nationwide on orders over ৳1,000!</span>
-              </span>
-            </div>
-            <div className="flex items-center gap-5 text-slate-400 text-xs">
-              <Link href="/Pages/OrderTracking" className="hover:text-emerald-400 transition-colors flex items-center gap-1">
-                <Truck size={13} />
-                <span>Track Order</span>
-              </Link>
-              <span>•</span>
-              <span className="flex items-center gap-1 hover:text-emerald-400 transition-colors">
-                <span>Hotline:</span>
-                <span className="font-semibold text-white">+880 1700-FINORA</span>
-              </span>
-              <span>•</span>
-              <span className="text-slate-300 font-medium">🇧🇩 BDT (৳)</span>
-            </div>
+      {/* Top Announcement & Utility Bar (Scrolls away naturally) */}
+      <div className="bg-slate-900 text-slate-300 text-[11px] sm:text-xs py-1 px-4 border-b border-slate-800 hidden sm:block">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <span className="inline-flex items-center gap-1.5 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-white font-semibold">Special Offer:</span>
+              <span>Free Express Delivery Nationwide on orders over ৳1,000!</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-slate-400 text-xs">
+            <Link href="/Pages/OrderTracking" className="hover:text-emerald-400 transition-colors flex items-center gap-1">
+              <Truck size={12} />
+              <span>Track Order</span>
+            </Link>
+            <span>•</span>
+            <span className="flex items-center gap-1 hover:text-emerald-400 transition-colors">
+              <span>Hotline:</span>
+              <span className="font-semibold text-white">+880 1700-FINORA</span>
+            </span>
+            <span>•</span>
+            <span className="text-slate-300 font-medium">🇧🇩 BDT (৳)</span>
           </div>
         </div>
+      </div>
 
+      {/* Main Sticky Header Container (Compact & rock-solid) */}
+      <header className="sticky top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md shadow-xs border-b border-slate-100 transition-all">
         {/* Top Navbar */}
-        <div className="border-b border-slate-100/80 bg-white/90 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-                <Image
-                  src={logo}
-                  alt="Finora Logo"
-                  width={24}
-                  height={24}
-                  priority
-                  className="brightness-0 invert"
-                />
-              </div>
-              <span className="text-2xl font-black tracking-tight text-slate-900 hidden sm:inline">
-                Finora<span className="text-emerald-500">.</span>
-              </span>
-            </Link>
+        <div className="bg-white/90">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 sm:gap-4">
+            {/* Left: Mobile Menu Toggle & Logo */}
+            <div className="flex items-center gap-2">
+              {/* Mobile Hamburger Button */}
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="lg:hidden p-2 text-slate-700 hover:text-emerald-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                aria-label="Open Navigation Menu"
+              >
+                <Menu size={22} />
+              </button>
+
+              {/* Logo */}
+              <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform p-2">
+                  <Image
+                    src="/logo.png"
+                    alt="Finora"
+                    width={24}
+                    height={24}
+                    priority
+                    className="object-contain brightness-0 invert"
+                  />
+                </div>
+                <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                  Finora<span className="text-emerald-500">.</span>
+                </span>
+              </Link>
+            </div>
 
             {/* Desktop Search */}
             <div className="hidden md:flex flex-1 max-w-xl mx-4 relative" ref={searchContainerRef}>
@@ -546,14 +539,8 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Bottom Navbar (Refined category bar) */}
-        <div
-          className={`hidden lg:block overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 shadow-sm transition-[max-height,opacity,transform] duration-300 ease-in-out ${
-            isBottomVisible
-              ? "max-h-16 opacity-100 translate-y-0"
-              : "max-h-0 opacity-0 -translate-y-3"
-          }`}
-        >
-          <div className="max-w-7xl mx-auto h-12 px-4 sm:px-6 flex items-center text-white font-medium">
+        <div className="hidden lg:block bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 shadow-2xs border-t border-emerald-500/20">
+          <div className="max-w-7xl mx-auto h-10 px-4 sm:px-6 flex items-center text-white font-medium text-sm">
             <NavMenu />
           </div>
         </div>
@@ -561,21 +548,27 @@ const Navbar = () => {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed top-0 left-0 bottom-0 w-4/5 max-w-xs bg-white shadow-2xl z-50 p-6 flex flex-col justify-between overflow-y-auto">
+          <div className="fixed top-0 left-0 bottom-0 w-4/5 max-w-xs bg-white shadow-2xl z-50 p-5 flex flex-col justify-between overflow-y-auto">
             <div>
-              <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-                <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-[#19b77a] flex items-center justify-center text-white">
-                    <Image src={logo} alt="Logo" width={20} height={20} />
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center p-1.5 text-white shadow-xs">
+                    <Image src="/logo.png" alt="Logo" width={18} height={18} className="object-contain brightness-0 invert" />
                   </div>
-                  <span className="text-xl font-bold">Finora</span>
+                  <span className="text-xl font-black tracking-tight text-slate-900">
+                    Finora<span className="text-emerald-500">.</span>
+                  </span>
                 </Link>
-                <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-gray-500 hover:text-black">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition"
+                >
                   <X size={20} />
                 </button>
               </div>
@@ -586,7 +579,7 @@ const Navbar = () => {
                     key={link.path}
                     href={link.path}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-3 rounded-xl text-gray-700 hover:bg-[#e9f9f3] hover:text-[#19b77a] font-medium text-sm transition-colors"
+                    className="block px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 font-medium text-sm transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -594,14 +587,14 @@ const Navbar = () => {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-gray-100 space-y-2">
+            <div className="pt-4 border-t border-slate-100 space-y-2">
               {isAuthenticated ? (
                 <>
                   <div className="px-2 py-1 mb-1">
-                    <p className="text-xs font-bold text-gray-900 truncate">
+                    <p className="text-xs font-bold text-slate-900 truncate">
                       {authUser?.name || authUser?.email}
                     </p>
-                    <p className="text-[11px] text-gray-400 font-medium">
+                    <p className="text-[11px] text-slate-400 font-medium">
                       {isAdmin ? "Administrator" : "Customer Account"}
                     </p>
                   </div>
@@ -609,8 +602,8 @@ const Navbar = () => {
                     href={isAdmin ? "/Dashboard/admin" : "/Dashboard/user"}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`w-full py-2.5 ${
-                      isAdmin ? "bg-orange-600 hover:bg-orange-700" : "bg-[#19b77a] hover:bg-[#159e68]"
-                    } text-white font-semibold rounded-xl text-center flex items-center justify-center gap-2 text-sm shadow-sm transition`}
+                      isAdmin ? "bg-orange-600 hover:bg-orange-700" : "bg-emerald-600 hover:bg-emerald-700"
+                    } text-white font-semibold rounded-xl text-center flex items-center justify-center gap-2 text-sm shadow-xs transition`}
                   >
                     {isAdmin ? (
                       <>
@@ -627,7 +620,7 @@ const Navbar = () => {
                       setMobileMenuOpen(false);
                       handleUserLogout();
                     }}
-                    className="w-full py-2.5 border border-red-200 text-red-500 font-semibold rounded-xl text-center flex items-center justify-center gap-2 text-sm hover:bg-red-50 cursor-pointer transition"
+                    className="w-full py-2.5 border border-rose-200 text-rose-600 font-semibold rounded-xl text-center flex items-center justify-center gap-2 text-sm hover:bg-rose-50 cursor-pointer transition"
                   >
                     <LogIn size={16} /> Log Out
                   </button>
@@ -636,7 +629,7 @@ const Navbar = () => {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-3 bg-[#19b77a] text-white font-semibold rounded-xl text-center block text-sm shadow-sm"
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-center block text-sm shadow-xs transition"
                 >
                   Sign In / Register
                 </Link>
@@ -645,9 +638,6 @@ const Navbar = () => {
           </div>
         </div>
       )}
-
-      {/* Spacer for Fixed Header */}
-      <div className="h-32 md:h-36 lg:h-38" />
     </>
   );
 };

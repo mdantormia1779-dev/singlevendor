@@ -44,20 +44,20 @@ const FeaturedProducts = () => {
   }, [products]);
 
   return (
-    <section ref={containerRef} className="pb-16 bg-white">
+    <section ref={containerRef} className="pb-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
                 Curated Picks
               </span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Featured Products
             </h2>
-            <p className="text-gray-500 text-sm sm:text-base mt-1">
+            <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
               Top authentic essentials handpicked for you
             </p>
           </div>

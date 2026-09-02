@@ -80,16 +80,16 @@ const Hero = () => {
 
   return (
     <>
-      <section ref={heroContainerRef} className="relative bg-gradient-to-b from-[#eef8f6] via-[#f7fbf9] to-white py-12 md:py-20 flex items-center overflow-hidden">
+      <section ref={heroContainerRef} className="relative bg-gradient-to-b from-[#eef8f6] via-[#f7fbf9] to-white py-8 md:py-12 flex items-center overflow-hidden">
         {/* Ambient background glows */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -z-10" />
         <div className="absolute bottom-0 right-10 w-96 h-96 bg-teal-400/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-12 items-center w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full">
           {/* Left Content Side */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-5">
             {/* Live Collection Pill */}
-            <div className="inline-flex items-center gap-2.5 bg-white border border-emerald-200/80 text-emerald-800 text-xs font-bold px-4 py-1.5 rounded-full shadow-xs">
+            <div className="inline-flex items-center gap-2.5 bg-white border border-emerald-200/80 text-emerald-800 text-xs font-bold px-3.5 py-1 rounded-full shadow-xs">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -100,7 +100,7 @@ const Hero = () => {
             {/* Main Heading */}
             <h1
               ref={titleRef}
-              className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.12] text-slate-900 tracking-tight"
+              className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.15] text-slate-900 tracking-tight"
             >
               Your favorite <br />
               <span className="text-emerald-600 bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-700 bg-clip-text text-transparent">
@@ -119,18 +119,18 @@ const Hero = () => {
             </p>
 
             {/* Call to Action Buttons */}
-            <div ref={ctaRef} className="flex flex-wrap items-center gap-4 pt-1">
+            <div ref={ctaRef} className="flex flex-wrap items-center gap-3.5 pt-0.5">
               <Link href="/Pages/AllProduct">
-                <button className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-7 py-3.5 rounded-2xl flex items-center gap-2.5 transition-all shadow-md shadow-emerald-600/20 cursor-pointer hover:shadow-lg hover:-translate-y-0.5">
-                  <ShoppingBag size={18} />
+                <button className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-6 py-3 rounded-2xl flex items-center gap-2.5 transition-all shadow-md shadow-emerald-600/20 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 text-sm">
+                  <ShoppingBag size={17} />
                   Shop Now
                 </button>
               </Link>
 
               <Link href="/Pages/Fasion">
-                <button className="border-2 border-slate-200 hover:border-emerald-600 text-slate-700 hover:text-emerald-600 font-bold px-7 py-3.5 rounded-2xl flex items-center gap-2 transition-all cursor-pointer hover:bg-white hover:shadow-xs active:scale-95">
+                <button className="border-2 border-slate-200 hover:border-emerald-600 text-slate-700 hover:text-emerald-600 font-bold px-6 py-3 rounded-2xl flex items-center gap-2 transition-all cursor-pointer hover:bg-white hover:shadow-xs active:scale-95 text-sm">
                   Explore Fashion
-                  <ArrowRight size={16} />
+                  <ArrowRight size={15} />
                 </button>
               </Link>
             </div>

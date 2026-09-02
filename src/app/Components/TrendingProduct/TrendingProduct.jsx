@@ -43,20 +43,20 @@ const TrendingProduct = () => {
   }, [products]);
 
   return (
-    <section className="pb-16 bg-white">
+    <section className="pb-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-extrabold uppercase tracking-wider text-rose-600 bg-rose-50 px-3 py-1 rounded-full border border-rose-200 flex items-center gap-1">
                 <Flame size={14} className="text-rose-600" /> High Demand
               </span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Trending Products
             </h2>
-            <p className="text-gray-500 text-sm sm:text-base mt-1">
+            <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
               Most loved and highest rated items this week
             </p>
           </div>

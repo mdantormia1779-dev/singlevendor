@@ -97,13 +97,13 @@ const PopularCategories = () => {
   }, []);
 
   return (
-    <section id="popular-categories" className="py-14 bg-white scroll-mt-24">
+    <section id="popular-categories" className="py-8 sm:py-10 bg-white scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="text-center max-w-2xl mx-auto mb-10 md:mb-12">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200">
+        <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
             Browse By Category
           </span>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mt-2 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2 tracking-tight">
             Popular Categories
           </h2>
           <p className="text-gray-500 text-xs sm:text-sm mt-1">

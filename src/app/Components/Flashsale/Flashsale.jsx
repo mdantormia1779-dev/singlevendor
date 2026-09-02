@@ -69,22 +69,22 @@ const Flashsale = () => {
   const marqueeItems = [...products, ...products];
 
   return (
-    <section className="pb-16">
-      <div className="max-w-7xl mx-auto bg-gradient-to-r from-[#FFF5F4] via-[#FFF9F8] to-[#FFF5F4] border border-red-100 rounded-3xl p-6 sm:p-8 overflow-hidden shadow-xs">
+    <section className="pb-10">
+      <div className="max-w-7xl mx-auto bg-gradient-to-r from-[#FFF5F4] via-[#FFF9F8] to-[#FFF5F4] border border-red-100 rounded-3xl p-5 sm:p-6 overflow-hidden shadow-xs">
         {/* Header Section */}
         <div
           ref={headerRef}
-          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10"
+          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
         >
-          <div className="flex items-center gap-4">
-            <div className="flame-icon w-12 h-12 rounded-2xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-red-200">
-              <Flame size={26} />
+          <div className="flex items-center gap-3">
+            <div className="flame-icon w-11 h-11 rounded-2xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-red-200">
+              <Flame size={24} />
             </div>
             <div>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              <h2 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
                 Flash Sale 🔥
               </h2>
-              <p className="text-gray-500 text-xs sm:text-base font-medium mt-0.5">
+              <p className="text-gray-500 text-xs sm:text-sm font-medium mt-0.5">
                 Limited-time deals from Finora catalog — grab before stock runs out!
               </p>
             </div>
