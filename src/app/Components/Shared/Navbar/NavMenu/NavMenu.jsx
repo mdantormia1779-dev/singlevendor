@@ -2,26 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
 
 const NavMenu = () => {
   const pathname = usePathname();
 
   const navItems = [
     { name: "Home", path: "/" },
+    { name: "All Products", path: "/Pages/AllProduct" },
     { name: "Fashion", path: "/Pages/Fasion" },
     { name: "Electronics", path: "/Pages/Electronics" },
     { name: "Mens Shoes", path: "/Pages/MenShoes" },
     { name: "Home & Living", path: "/Pages/HomeLiving" },
     { name: "Gadgets", path: "/Pages/Gadgets" },
-    { name: "Dashboard", path: "/Dashboard/user" },
-    // { name: "Shopping Cards", path: "/Pages/ShopingCards" },
-    // { name: "Confirm", path: "/Pages/OrderConfirm" },
-    // { name: "Success", path: "/Pages/OrderSuccess" },
   ];
 
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex items-center gap-1 sm:gap-2">
       {navItems.map((item) => {
         const isActive = pathname === item.path;
 
@@ -29,16 +25,13 @@ const NavMenu = () => {
           <Link
             key={item.path}
             href={item.path}
-            className={`flex items-center gap-1 transition-all
-              ${
-                isActive
-                  ? "text-white font-semibold underline underline-offset-4 decoration-2"
-                  : "text-white"
-              }
-            `}
+            className={`px-3.5 py-1.5 rounded-lg text-sm md:text-base font-medium transition-all ${
+              isActive
+                ? "bg-white/20 text-white font-bold shadow-xs"
+                : "text-white/90 hover:bg-white/10 hover:text-white"
+            }`}
           >
             {item.name}
-            <ChevronDown size={18} />
           </Link>
         );
       })}

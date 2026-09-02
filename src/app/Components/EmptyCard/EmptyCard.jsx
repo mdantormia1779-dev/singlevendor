@@ -20,8 +20,8 @@ const EmptyCard = () => {
 
           {/* Description */}
           <p className="mt-6 text-[18px] text-gray-500 leading-8 max-w-85 mx-auto">
-            You haven't added any items yet. Explore our premium collections and
-            find something you'll love.
+            You haven&apos;t added any items yet. Explore our premium collections and
+            find something you&apos;ll love.
           </p>
 
           {/* Button */}

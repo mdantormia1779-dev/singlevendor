@@ -1,22 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
-import { Trash2, Heart, AlertTriangle } from "lucide-react";
-import { useSelector, useDispatch } from "react-redux"; // Redux Hooks
-import { toggleWishlist } from "../../../../store/wishlistSlice"; // আপনার পাথ অনুযায়ী ঠিক করে নিন
-import { addToCart } from "../../../../store/cartSlice"; // Add to cart এর জন্য
+import React, { useState, useEffect } from "react";
+import { Trash2, Heart, AlertTriangle, ShoppingCart } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { toggleWishlist } from "@/app/store/wishlistSlice";
+import { addToCart } from "@/app/store/cartSlice";
 import { toast } from "react-toastify";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuthGuard } from "@/lib/useAuthGuard";
 
 const Wishlist = () => {
   const dispatch = useDispatch();
-  // Redux থেকে উইশলিস্ট ডেটা নেওয়া
-  const wishlistItems = useSelector((state) => state.wishlist.items);
+  const { requireAuth } = useAuthGuard();
+  const wishlistItems = useSelector((state) => state.wishlist.items) || [];
 
-  // ডিলিট মোডালের জন্য স্টেট
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+
+  useEffect(() => {
+    requireAuth("Please login to view and manage your wishlist!", "/Dashboard/user/Wishlist");
+  }, [requireAuth]);
 
   const confirmDelete = (id) => {
     setItemToDelete(id);
@@ -24,122 +28,141 @@ const Wishlist = () => {
   };
 
   const handleDelete = () => {
-    // Redux থেকে রিমুভ করার জন্য toggleWishlist কল করছি
     const item = wishlistItems.find((i) => i.id === itemToDelete);
-    dispatch(toggleWishlist(item));
+    if (item) {
+      dispatch(toggleWishlist(item));
+      toast.info("Removed from wishlist");
+    }
     setIsDeleteModalOpen(false);
     setItemToDelete(null);
-    toast.info("Removed from wishlist");
   };
 
   const handleAddToCart = (product) => {
-    dispatch(addToCart(product));
-    toast.success("Added to cart ✅");
+    if (!requireAuth("Please login to add items to your cart!")) {
+      return;
+    }
+    dispatch(addToCart({ ...product, quantity: 1 }));
+    toast.success("Added to cart! 🛍️");
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-10">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-50/50 py-6 px-2">
+      <div className="max-w-4xl mx-auto">
         {wishlistItems.length > 0 ? (
           <>
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">
-              My wishlist ({wishlistItems.length})
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-900">
+                My Wishlist ({wishlistItems.length})
+              </h2>
+            </div>
             <div className="flex flex-col gap-4">
-              {wishlistItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex flex-col sm:flex-row p-4 border border-gray-200 rounded-2xl gap-6 bg-white hover:shadow-sm transition-shadow"
-                >
-                  <div className="w-full sm:w-36 h-36 bg-gray-100 rounded-xl shrink-0 overflow-hidden relative">
-                    <div className="w-full sm:w-36 h-36 bg-gray-100 rounded-xl shrink-0 overflow-hidden relative">
+              {wishlistItems.map((item) => {
+                const img = item.images?.[0] || item.image || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80";
+                return (
+                  <div
+                    key={item.id}
+                    className="flex flex-col sm:flex-row p-4 sm:p-5 border border-gray-200 rounded-3xl gap-5 bg-white hover:shadow-md transition-shadow"
+                  >
+                    <div className="w-full sm:w-32 h-32 bg-gray-50 rounded-2xl shrink-0 overflow-hidden relative border border-gray-100">
                       <Image
-                        src={
-                          item.images?.[0] ||
-                          item.image ||
-                          "/fallback-image.jpg"
-                        } // fallback ইমেজ দিতে পারেন
+                        src={img}
                         alt={item.title}
                         fill
                         className="object-cover"
-                        sizes="(max-width: 640px) 100vw, 144px"
+                        sizes="(max-width: 640px) 100vw, 128px"
                       />
                     </div>
-                  </div>
-                  <div className="flex flex-col grow justify-between">
-                    <div>
-                      <div className="flex justify-between items-start gap-4">
-                        <h3 className="font-semibold text-slate-800 text-lg leading-tight">
-                          {item.title}
-                        </h3>
-                        <button
-                          onClick={() => confirmDelete(item.id)}
-                          className="text-slate-400 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 size={20} />
-                        </button>
-                      </div>
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="font-bold text-lg text-slate-900">
-                          ৳{item.price}
-                        </span>
-                        {item.oldPrice && (
-                          <span className="text-slate-400 line-through text-sm">
-                            ৳{item.oldPrice}
+
+                    <div className="flex flex-col grow justify-between gap-3">
+                      <div>
+                        <div className="flex justify-between items-start gap-4">
+                          <Link href={`/Pages/Details/${item.id}`} className="hover:text-emerald-600 transition">
+                            <h3 className="font-bold text-slate-800 text-base sm:text-lg leading-tight line-clamp-2">
+                              {item.title}
+                            </h3>
+                          </Link>
+                          <button
+                            onClick={() => confirmDelete(item.id)}
+                            className="text-slate-400 hover:text-red-500 transition-colors p-1 cursor-pointer"
+                            aria-label="Remove item"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                        <div className="mt-2 flex items-center gap-2">
+                          <span className="font-bold text-lg text-emerald-600">
+                            ৳{item.price}
                           </span>
-                        )}
+                          {item.oldPrice && (
+                            <span className="text-slate-400 line-through text-sm">
+                              ৳{item.oldPrice}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleAddToCart(item)}
+                          className="flex-1 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
+                        >
+                          <ShoppingCart size={16} />
+                          <span>Add to Cart</span>
+                        </button>
+                        <Link
+                          href={`/Pages/Details/${item.id}`}
+                          className="py-2.5 px-4 rounded-xl font-semibold text-xs sm:text-sm border border-gray-200 hover:bg-gray-50 text-gray-700 transition text-center"
+                        >
+                          View Details
+                        </Link>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleAddToCart(item)}
-                      className={`mt-4 sm:mt-0 w-full py-2.5 rounded-lg font-semibold text-sm ${item.inStock !== false ? "bg-[#19b77a] text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
-                      disabled={item.inStock === false}
-                    >
-                      {item.inStock !== false ? "Add to cart" : "Out of stock"}
-                    </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl shadow-sm border border-gray-100 max-w-2xl mx-auto mt-10">
-            <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-6">
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100 max-w-2xl mx-auto mt-6 text-center px-6">
+            <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-5">
               <Heart className="text-pink-500" size={32} />
             </div>
             <h2 className="text-2xl font-bold text-slate-800 mb-2">
               Your wishlist is empty
             </h2>
-            <Link href={"/"}>
-              <button className="px-8 py-3 bg-[#19b77a] text-white font-semibold rounded-xl">
-                Explore Best Sellers
+            <p className="text-gray-500 text-sm max-w-sm mb-6">
+              Explore our wide variety of products and save your favorites to your wishlist!
+            </p>
+            <Link href="/Pages/AllProduct">
+              <button className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl cursor-pointer transition shadow-md shadow-emerald-100">
+                Explore All Products
               </button>
             </Link>
           </div>
         )}
       </div>
 
-      {/* ডিলিট কনফার্মেশন মোডাল */}
+      {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
-            <AlertTriangle className="mx-auto text-red-500 mb-4" size={48} />
-            <h2 className="text-2xl font-bold mb-2">Are you sure?</h2>
-            <p className="text-slate-500 mb-8">
-              Do you want to delete this item from your wishlist?
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-sm text-center shadow-2xl">
+            <AlertTriangle className="mx-auto text-red-500 mb-4" size={44} />
+            <h2 className="text-xl font-bold mb-2 text-gray-900">Remove from Wishlist?</h2>
+            <p className="text-slate-500 text-sm mb-6">
+              Are you sure you want to remove this item from your wishlist?
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="w-full py-3 bg-gray-100 rounded-xl font-bold text-slate-600"
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-slate-700 cursor-pointer text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
-                className="w-full py-3 bg-red-500 text-white rounded-xl font-bold"
+                className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold cursor-pointer text-sm"
               >
-                Delete
+                Remove
               </button>
             </div>
           </div>
@@ -150,3 +173,4 @@ const Wishlist = () => {
 };
 
 export default Wishlist;
+

@@ -1,101 +1,218 @@
 "use client";
 
+import React, { useState } from "react";
 import {
   Bell,
   Moon,
   Search,
   MessageSquare,
   Maximize2,
-  Grid2x2,
   Settings,
+  LogOut,
+  Store,
+  CheckCircle,
+  X,
+  ChevronDown,
+  ShieldAlert,
 } from "lucide-react";
-
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "@/app/store/authSlice";
+import { toast } from "react-toastify";
 
 export default function DashboardHeader() {
-  return (
-    <header className="h-20 bg-white border-b flex items-center justify-between px-8">
-      {/* Left */}
-      <div className="relative w-[320px]">
-        <Search
-          size={20}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-        />
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const authUser = useSelector((state) => state.auth?.user);
 
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+  const userName = authUser?.name || authUser?.fullName || "Md Antor Mia (admin)";
+  const userEmail = authUser?.email || "superadmin@erp.com";
+  const userRole = authUser?.role || "SUPER_ADMIN";
+  const userAvatar =
+    authUser?.avatar ||
+    authUser?.image ||
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80";
+
+  React.useEffect(() => {
+    fetch("/api/orders?limit=4")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.orders) {
+          const mapped = data.orders.map((o) => ({
+            id: o.id,
+            title: `Order ${o.id}`,
+            desc: `${o.customer?.name || "Customer"} ordered for ৳${Number(o.total || 0).toLocaleString()}`,
+            time: o.date || new Date(o.createdAt).toLocaleDateString(),
+          }));
+          setNotifications(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.info("Logged out from admin panel");
+    router.push("/login");
+  };
+
+  return (
+    <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 relative z-30">
+      {/* Search Left */}
+      <div className="relative w-48 sm:w-80">
+        <Search
+          size={18}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+        />
         <input
           type="text"
-          placeholder="Search"
-          className="w-full h-12 rounded-xl bg-gray-100 pl-12 pr-4 outline-none border-0 placeholder:text-gray-500"
+          placeholder="Quick search products, orders..."
+          className="w-full h-11 rounded-2xl bg-gray-50 pl-10 pr-4 outline-none border border-gray-200 text-xs sm:text-sm focus:border-emerald-500 transition-colors"
         />
       </div>
 
-      {/* Right */}
-      <div className="flex items-center gap-4">
-        {/* Language */}
-        <button className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
-          🇬🇧
+      {/* Action Buttons Right */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Fullscreen Button */}
+        <button
+          onClick={handleFullscreen}
+          className="w-10 h-10 rounded-2xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 transition cursor-pointer border border-gray-100 hidden sm:flex"
+          title="Toggle Fullscreen"
+        >
+          <Maximize2 size={18} />
         </button>
 
-        {/* Dark */}
-        <button className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
-          <Moon size={20} />
-        </button>
+        {/* Notifications Dropdown Toggle */}
+        <div className="relative">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="relative w-10 h-10 rounded-2xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 transition cursor-pointer border border-gray-100"
+            title="Notifications"
+          >
+            <Bell size={18} />
+            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500"></span>
+          </button>
 
-        {/* Notification */}
-        <button className="relative w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
-          <Bell size={20} />
+          {showNotifications && (
+            <div className="absolute right-0 mt-3 w-80 bg-white rounded-3xl shadow-xl border border-gray-100 p-4 z-50">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
+                <span className="font-bold text-sm text-gray-900">Notifications</span>
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  className="text-xs text-emerald-600 hover:underline cursor-pointer"
+                >
+                  Mark all as read
+                </button>
+              </div>
 
-          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500"></span>
-        </button>
+              <div className="space-y-2.5">
+                {notifications.length === 0 ? (
+                  <p className="text-xs text-gray-400 text-center py-4">No recent orders or alerts</p>
+                ) : (
+                  notifications.map((n) => (
+                    <div key={n.id} className="p-2.5 rounded-2xl bg-gray-50/70 hover:bg-gray-100 transition">
+                      <p className="text-xs font-bold text-gray-900">{n.title}</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">{n.desc}</p>
+                      <span className="text-[10px] text-gray-400 mt-1 block">{n.time}</span>
+                    </div>
+                  ))
+                )}
+              </div>
 
-        {/* Message */}
-        <button className="relative w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
-          <MessageSquare size={20} />
-
-          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500"></span>
-        </button>
-
-        {/* Fullscreen */}
-        <button className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
-          <Maximize2 size={20} />
-        </button>
-
-        {/* Apps */}
-        <button className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
-          <Grid2x2 size={20} />
-        </button>
-
-        {/* Divider */}
-        <div className="w-px h-10 bg-gray-200"></div>
-
-        {/* Profile */}
-        <div className="flex items-center gap-3 cursor-pointer">
-          <Image
-            src="https://i.pravatar.cc/150?img=12"
-            alt="user"
-            width={48}
-            height={48}
-            className="rounded-full"
-          />
-
-          <div className="hidden lg:block">
-            <h3 className="font-semibold text-gray-900">
-              Kristin Watson
-            </h3>
-
-            <p className="text-sm text-gray-500">
-              Sale Administrator
-            </p>
-          </div>
+              <Link
+                href="/Dashboard/admin/orders"
+                onClick={() => setShowNotifications(false)}
+                className="block text-center text-xs font-bold text-emerald-600 pt-3 hover:underline"
+              >
+                View all orders & alerts →
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Divider */}
-        <div className="w-px h-10 bg-gray-200"></div>
+        <div className="w-px h-8 bg-gray-200 mx-1"></div>
 
-        {/* Setting */}
-        <button className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
-          <Settings size={20} />
-        </button>
+        {/* Profile Menu Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className="flex items-center gap-3 p-1.5 rounded-2xl hover:bg-gray-50 transition cursor-pointer"
+          >
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-gray-200 bg-emerald-50 shrink-0">
+              {userAvatar ? (
+                <Image
+                  src={userAvatar}
+                  alt={userName}
+                  fill
+                  sizes="40px"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center font-bold text-emerald-700 text-sm">
+                  {userName.charAt(0)}
+                </div>
+              )}
+            </div>
+            <div className="hidden lg:block text-left">
+              <h3 className="font-bold text-xs text-gray-900 leading-tight max-w-[140px] truncate">
+                {userName}
+              </h3>
+              <p className="text-[10px] text-emerald-600 font-extrabold tracking-wide uppercase">
+                {userRole}
+              </p>
+            </div>
+            <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
+          </button>
+
+          {showProfileMenu && (
+            <div className="absolute right-0 mt-3 w-60 bg-white rounded-3xl shadow-xl border border-gray-100 p-3 z-50">
+              <div className="px-3 py-2 border-b border-gray-100 mb-1">
+                <p className="text-xs font-bold text-gray-900 truncate">{userName}</p>
+                <p className="text-[11px] text-gray-500 truncate font-mono">{userEmail}</p>
+                <span className="inline-block text-[9px] font-extrabold uppercase px-2 py-0.5 mt-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {userRole}
+                </span>
+              </div>
+
+              <Link
+                href="/Dashboard/admin/settings"
+                onClick={() => setShowProfileMenu(false)}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 rounded-xl transition"
+              >
+                <Settings size={15} /> Store Settings
+              </Link>
+              <Link
+                href="/"
+                onClick={() => setShowProfileMenu(false)}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 rounded-xl transition"
+              >
+                <Store size={15} /> View Storefront
+              </Link>
+              <div className="my-1 border-t border-gray-100"></div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-rose-500 hover:bg-rose-50 rounded-xl transition cursor-pointer"
+              >
+                <LogOut size={15} /> Log Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -8,7 +8,7 @@ const reviews = [
     id: 1,
     name: "Ebrahim",
     city: "Chittagong",
-    image: "/users/user1.jpg",
+    image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80",
     rating: 5,
     review:
       "Amazing service! Got my order in just 2 days. Product was exactly as described. Will definitely shop again!",
@@ -17,7 +17,7 @@ const reviews = [
     id: 2,
     name: "Arif Ahmed",
     city: "Sylhet",
-    image: "/users/user2.jpg",
+    image: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=120&auto=format&fit=crop&q=80",
     rating: 4,
     review:
       "Fast delivery and excellent packaging. The bKash payment option is super convenient for me.",
@@ -26,13 +26,13 @@ const reviews = [
     id: 3,
     name: "Fatema Khatun",
     city: "Chittagong",
-    image: "/users/user3.jpg",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
     rating: 5,
     review:
-      "Trusted platform. I've been buying from ShopyBD for 2 years. Never had a bad experience. Great prices.",
+      "Trusted platform. I've been buying from Finora for 2 years. Never had a bad experience. Great prices.",
   },
-
 ];
+
 
 export default function Testimonials() {
   return (
@@ -63,7 +63,7 @@ export default function Testimonials() {
 
               {/* Review */}
               <p className="text-[16px] text-gray-700 leading-8 h-[95px]">
-                "{item.review}"
+                &quot;{item.review}&quot;
               </p>
 
               {/* User */}
