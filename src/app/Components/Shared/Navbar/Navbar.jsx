@@ -45,6 +45,9 @@ const Navbar = () => {
   const wishlistItems = useSelector((state) => state.wishlist.items);
   const authUser = useSelector((state) => state.auth?.user);
   const isAuthenticated = useSelector((state) => state.auth?.isAuthenticated);
+  const isAdmin =
+    authUser?.role?.toLowerCase() === "admin" ||
+    authUser?.role?.toUpperCase() === "SUPER_ADMIN";
 
   useEffect(() => {
     dispatch(loadStoredAuth());
@@ -393,9 +396,15 @@ const Navbar = () => {
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
                           {isAuthenticated ? "Signed in as" : "Finora Account"}
                         </p>
-                        {isAuthenticated && authUser?.role && (
-                          <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {authUser.role}
+                        {isAuthenticated && (
+                          <span
+                            className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md ${
+                              isAdmin
+                                ? "bg-orange-50 text-orange-700 border border-orange-200"
+                                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            }`}
+                          >
+                            {isAdmin ? "Admin" : "User"}
                           </span>
                         )}
                       </div>
@@ -411,27 +420,25 @@ const Navbar = () => {
 
                     <div className="py-1">
                       {isAuthenticated ? (
-                        <>
+                        isAdmin ? (
+                          <Link
+                            href="/Dashboard/admin"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors font-medium"
+                          >
+                            <ShieldCheck size={16} className="text-orange-500" />
+                            Admin Dashboard
+                          </Link>
+                        ) : (
                           <Link
                             href="/Dashboard/user"
                             onClick={() => setUserMenuOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#19b77a] transition-colors font-medium"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-[#19b77a] transition-colors font-medium"
                           >
                             <LayoutDashboard size={16} className="text-[#19b77a]" />
                             User Dashboard
                           </Link>
-
-                          {(authUser?.role === "admin" || authUser?.role === "SUPER_ADMIN") && (
-                            <Link
-                              href="/Dashboard/admin"
-                              onClick={() => setUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600 transition-colors font-medium"
-                            >
-                              <ShieldCheck size={16} className="text-orange-500" />
-                              Admin Dashboard
-                            </Link>
-                          )}
-                        </>
+                        )
                       ) : null}
 
                       <Link
@@ -562,13 +569,52 @@ const Navbar = () => {
             </div>
 
             <div className="pt-4 border-t border-gray-100 space-y-2">
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-3 bg-[#19b77a] text-white font-semibold rounded-xl text-center block text-sm shadow-sm"
-              >
-                Sign In / Register
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <div className="px-2 py-1 mb-1">
+                    <p className="text-xs font-bold text-gray-900 truncate">
+                      {authUser?.name || authUser?.email}
+                    </p>
+                    <p className="text-[11px] text-gray-400 font-medium">
+                      {isAdmin ? "Administrator" : "Customer Account"}
+                    </p>
+                  </div>
+                  <Link
+                    href={isAdmin ? "/Dashboard/admin" : "/Dashboard/user"}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`w-full py-2.5 ${
+                      isAdmin ? "bg-orange-600 hover:bg-orange-700" : "bg-[#19b77a] hover:bg-[#159e68]"
+                    } text-white font-semibold rounded-xl text-center flex items-center justify-center gap-2 text-sm shadow-sm transition`}
+                  >
+                    {isAdmin ? (
+                      <>
+                        <ShieldCheck size={16} /> Admin Dashboard
+                      </>
+                    ) : (
+                      <>
+                        <LayoutDashboard size={16} /> User Dashboard
+                      </>
+                    )}
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleUserLogout();
+                    }}
+                    className="w-full py-2.5 border border-red-200 text-red-500 font-semibold rounded-xl text-center flex items-center justify-center gap-2 text-sm hover:bg-red-50 cursor-pointer transition"
+                  >
+                    <LogIn size={16} /> Log Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-3 bg-[#19b77a] text-white font-semibold rounded-xl text-center block text-sm shadow-sm"
+                >
+                  Sign In / Register
+                </Link>
+              )}
             </div>
           </div>
         </div>

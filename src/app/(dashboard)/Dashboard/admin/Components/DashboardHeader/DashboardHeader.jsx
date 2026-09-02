@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import {
+  Menu,
   Bell,
   Moon,
   Search,
@@ -22,7 +23,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { logout } from "@/app/store/authSlice";
 import { toast } from "react-toastify";
 
-export default function DashboardHeader() {
+export default function DashboardHeader({ onToggleMobileSidebar }) {
   const router = useRouter();
   const dispatch = useDispatch();
   const authUser = useSelector((state) => state.auth?.user);
@@ -31,23 +32,25 @@ export default function DashboardHeader() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
-  const userName = authUser?.name || authUser?.fullName || "Md Antor Mia (admin)";
-  const userEmail = authUser?.email || "superadmin@erp.com";
-  const userRole = authUser?.role || "SUPER_ADMIN";
-  const userAvatar =
-    authUser?.avatar ||
-    authUser?.image ||
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80";
+  const userName = authUser?.name || authUser?.fullName || "Administrator";
+  const userEmail = authUser?.email || "admin@finora.com";
+  const userRole = authUser?.role || "ADMIN";
+  const userAvatar = authUser?.avatar || authUser?.image;
 
   React.useEffect(() => {
     fetch("/api/orders?limit=4")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
+          return null;
+        }
+        return res.json();
+      })
       .then((data) => {
-        if (data.success && data.orders) {
+        if (data && data.success && data.orders) {
           const mapped = data.orders.map((o) => ({
             id: o.id,
             title: `Order ${o.id}`,
-            desc: `${o.customer?.name || "Customer"} ordered for ৳${Number(o.total || 0).toLocaleString()}`,
+            desc: `${o.customerName || "Customer"} ordered for ৳${Number(o.total || 0).toLocaleString()}`,
             time: o.date || new Date(o.createdAt).toLocaleDateString(),
           }));
           setNotifications(mapped);
@@ -71,22 +74,45 @@ export default function DashboardHeader() {
   };
 
   return (
-    <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 relative z-30">
-      {/* Search Left */}
-      <div className="relative w-48 sm:w-80">
-        <Search
-          size={18}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
-        />
-        <input
-          type="text"
-          placeholder="Quick search products, orders..."
-          className="w-full h-11 rounded-2xl bg-gray-50 pl-10 pr-4 outline-none border border-gray-200 text-xs sm:text-sm focus:border-emerald-500 transition-colors"
-        />
+    <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 relative z-30 shrink-0">
+      {/* Left: Mobile Hamburger + Search */}
+      <div className="flex items-center gap-3">
+        {/* Mobile Hamburger Button */}
+        <button
+          type="button"
+          onClick={onToggleMobileSidebar}
+          className="lg:hidden w-10 h-10 rounded-2xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-700 transition cursor-pointer border border-gray-200"
+          title="Open Menu"
+        >
+          <Menu size={20} />
+        </button>
+
+        {/* Search */}
+        <div className="relative w-36 sm:w-64 md:w-80">
+          <Search
+            size={18}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+          <input
+            type="text"
+            placeholder="Quick search products, orders..."
+            className="w-full h-11 rounded-2xl bg-gray-50 pl-10 pr-4 outline-none border border-gray-200 text-xs sm:text-sm focus:border-emerald-500 focus:bg-white transition-colors"
+          />
+        </div>
       </div>
 
       {/* Action Buttons Right */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Live Storefront Button */}
+        <Link
+          href="/"
+          className="hidden md:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition text-xs font-bold shadow-2xs"
+          title="View Customer Storefront"
+        >
+          <Store size={15} />
+          <span>Live Store</span>
+        </Link>
+
         {/* Fullscreen Button */}
         <button
           onClick={handleFullscreen}

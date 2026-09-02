@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
   const pathname = usePathname();
 
   // Hide Navbar/Footer on Admin Dashboard
-  const hideLayout = pathname?.startsWith("/Dashboard/admin");
+  const hideLayout = pathname?.toLowerCase()?.startsWith("/dashboard/admin");
 
   return (
     <html

@@ -15,7 +15,7 @@ model User {
   image         String?
   avatar        String?
   password      String?
-  role          String    @default("admin") // "admin" | "customer"
+  role          String    @default("customer") // "admin" | "customer"
   phone         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
