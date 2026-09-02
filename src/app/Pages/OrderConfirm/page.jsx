@@ -31,6 +31,7 @@ const OrderConfirmPage = () => {
   };
 
   const { isAuthenticated, user, requireAuth } = useAuthGuard();
+  const authUser = useSelector((state) => state.auth?.user);
 
   // Customer Contact & Address State
   const [contactData, setContactData] = useState(() => ({
@@ -248,8 +249,11 @@ const OrderConfirmPage = () => {
 
     const fullShippingAddress = `${contactData.streetAddress.trim()}, ${contactData.upazila.trim()}, ${contactData.district}, ${contactData.division}`;
 
+    const activeUser = user || authUser;
+
     const newOrder = {
       id: `#${orderId}`,
+      userId: activeUser?.id || null,
       date: new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
@@ -264,6 +268,7 @@ const OrderConfirmPage = () => {
         name: contactData.fullName.trim(),
         phone: cleanCustomerPhone,
         address: fullShippingAddress,
+        email: activeUser?.email || null,
       },
       paymentMethod: paymentMethod.toUpperCase(),
       paymentDetails:

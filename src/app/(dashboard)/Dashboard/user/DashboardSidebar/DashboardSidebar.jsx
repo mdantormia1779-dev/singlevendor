@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "@/app/store/authSlice";
+import { clearOrders } from "@/app/store/cartSlice";
 import { toast } from "react-toastify";
 
 const DashboardSidebar = () => {
@@ -25,8 +26,21 @@ const DashboardSidebar = () => {
   const dispatch = useDispatch();
 
   const authUser = useSelector((state) => state.auth?.user);
-  const orders = useSelector((state) => state.cart.orders) || [];
+  const rawOrders = useSelector((state) => state.cart.orders) || [];
   const wishlistItems = useSelector((state) => state.wishlist.items) || [];
+
+  const userOrders = React.useMemo(() => {
+    if (!rawOrders || !authUser) return [];
+    return rawOrders.filter((o) => {
+      const cleanTargetPhone = authUser.phone ? authUser.phone.replace(/[^\d]/g, "").slice(-11) : "";
+      const orderPhone = o.customer?.phone ? o.customer.phone.replace(/[^\d]/g, "").slice(-11) : "";
+
+      if (o.userId && authUser.id && o.userId === authUser.id) return true;
+      if (cleanTargetPhone && orderPhone && cleanTargetPhone === orderPhone) return true;
+      if (authUser.email && o.customer?.email && authUser.email.toLowerCase() === o.customer.email.toLowerCase()) return true;
+      return false;
+    });
+  }, [rawOrders, authUser]);
 
   const userName = authUser?.name || "Customer";
   const userContact = authUser?.email || authUser?.phone || "customer@finora.com";
@@ -43,6 +57,7 @@ const DashboardSidebar = () => {
 
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(clearOrders());
     toast.info("Logged out from your account");
     router.push("/login");
   };
@@ -78,7 +93,7 @@ const DashboardSidebar = () => {
 
         <div className="flex gap-2">
           <div className="flex-1 bg-gray-50 py-3 rounded-2xl text-center">
-            <p className="text-lg font-bold text-gray-900">{orders.length}</p>
+            <p className="text-lg font-bold text-gray-900">{userOrders.length}</p>
             <p className="text-xs text-gray-500 font-medium">Orders</p>
           </div>
           <div className="flex-1 bg-gray-50 py-3 rounded-2xl text-center">

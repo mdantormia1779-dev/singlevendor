@@ -56,6 +56,7 @@ const authSlice = createSlice({
       if (typeof window !== "undefined") {
         try {
           localStorage.removeItem("finora_user");
+          localStorage.removeItem("finora_orders");
         } catch (e) {}
       }
     },

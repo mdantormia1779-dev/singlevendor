@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { logout, loadStoredAuth } from "@/app/store/authSlice";
+import { clearOrders } from "@/app/store/cartSlice";
 import { toast } from "react-toastify";
 
 const Navbar = () => {
@@ -43,6 +44,7 @@ const Navbar = () => {
 
   const handleUserLogout = () => {
     dispatch(logout());
+    dispatch(clearOrders());
     setUserMenuOpen(false);
     toast.info("Logged out from Finora account.");
     router.push("/");

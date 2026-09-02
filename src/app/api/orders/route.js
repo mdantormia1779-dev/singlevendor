@@ -9,25 +9,62 @@ export async function GET(request) {
     const status = searchParams.get("status") || "";
     const userId = searchParams.get("userId") || "";
     const phone = searchParams.get("phone") || "";
+    const email = searchParams.get("email") || "";
     const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")) : undefined;
 
-    const where = {};
+    const andConditions = [];
+
     if (search) {
-      where.OR = [
-        { id: { contains: search, mode: "insensitive" } },
-        { customerName: { contains: search, mode: "insensitive" } },
-        { customerPhone: { contains: search, mode: "insensitive" } },
-      ];
+      andConditions.push({
+        OR: [
+          { id: { contains: search, mode: "insensitive" } },
+          { customerName: { contains: search, mode: "insensitive" } },
+          { customerPhone: { contains: search, mode: "insensitive" } },
+        ],
+      });
     }
+
     if (status && status !== "All") {
-      where.status = { equals: status, mode: "insensitive" };
+      andConditions.push({
+        status: { equals: status, mode: "insensitive" },
+      });
     }
-    if (userId) {
-      where.userId = userId;
+
+    // Filter by user if userId, email, or phone is specified
+    if (userId || phone || email) {
+      const userFilters = [];
+
+      if (userId) {
+        userFilters.push({ userId: userId });
+
+        // Also check if user has a registered phone number in User table
+        try {
+          const userRecord = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { phone: true, email: true },
+          });
+          if (userRecord?.phone) {
+            const cleanUserPhone = userRecord.phone.replace(/[^\d]/g, "").slice(-11);
+            if (cleanUserPhone) {
+              userFilters.push({ customerPhone: { contains: cleanUserPhone } });
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (phone) {
+        const cleanPhone = phone.replace(/[^\d]/g, "").slice(-11);
+        if (cleanPhone) {
+          userFilters.push({ customerPhone: { contains: cleanPhone } });
+        }
+      }
+
+      if (userFilters.length > 0) {
+        andConditions.push({ OR: userFilters });
+      }
     }
-    if (phone) {
-      where.customerPhone = { contains: phone, mode: "insensitive" };
-    }
+
+    const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const orders = await prisma.order.findMany({
       where,
@@ -82,6 +119,38 @@ export async function POST(request) {
 
     const orderId = id || `#ORD-${Date.now().toString().slice(-6)}`;
 
+    // Verify or find valid user in database
+    let validUserId = null;
+    if (userId) {
+      const userExists = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      });
+      if (userExists) {
+        validUserId = userExists.id;
+      }
+    }
+
+    if (!validUserId) {
+      const cleanPhone = customer?.phone ? customer.phone.replace(/[^\d]/g, "").slice(-11) : "";
+      const cleanEmail = customer?.email ? customer.email.toLowerCase().trim() : "";
+
+      if (cleanEmail || cleanPhone) {
+        const matched = await prisma.user.findFirst({
+          where: {
+            OR: [
+              ...(cleanEmail ? [{ email: cleanEmail }] : []),
+              ...(cleanPhone ? [{ phone: { contains: cleanPhone } }] : []),
+            ],
+          },
+          select: { id: true },
+        });
+        if (matched) {
+          validUserId = matched.id;
+        }
+      }
+    }
+
     const newOrder = await prisma.order.create({
       data: {
         id: orderId,
@@ -97,7 +166,7 @@ export async function POST(request) {
         paymentTrxId: paymentDetails?.trxId || null,
         deliveryMethod: deliveryMethod || "Express (1-2 days)",
         deliveryNotes: deliveryNotes || null,
-        userId: userId || null,
+        userId: validUserId,
         products: {
           create: (products || []).map((p) => ({
             productId: p.id ? Number(p.id) : null,

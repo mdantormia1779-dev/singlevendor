@@ -124,6 +124,16 @@ const cartSlice = createSlice({
         } catch (e) {}
       }
     },
+
+    // Clear All Orders (e.g. on logout)
+    clearOrders: (state) => {
+      state.orders = [];
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.removeItem("finora_orders");
+        } catch (e) {}
+      }
+    },
   },
 });
 
@@ -139,6 +149,7 @@ export const {
   addOrder,
   updateOrderStatus,
   deleteOrder,
+  clearOrders,
 } = cartSlice.actions;
 
 export default cartSlice.reducer;
