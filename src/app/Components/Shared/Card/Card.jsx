@@ -123,7 +123,7 @@ const Card = ({ product }) => {
         </Link>
 
         {product.discount && (
-          <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-xl z-10 shadow-xs">
+          <span className="absolute top-3 left-3 bg-rose-500 text-white text-[11px] font-extrabold px-2.5 py-1 rounded-lg z-10 shadow-sm tracking-wide">
             {product.discount}
           </span>
         )}
@@ -131,16 +131,16 @@ const Card = ({ product }) => {
         {/* Wishlist Button */}
         <button
           onClick={handleWishlist}
-          className={`absolute top-3 right-3 w-10 h-10 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md duration-200 z-10 cursor-pointer ${
-            isWishlisted ? "text-red-500" : "text-gray-400 hover:text-red-500"
+          className={`absolute top-3 right-3 w-9 h-9 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-md duration-200 z-10 cursor-pointer active:scale-90 ${
+            isWishlisted ? "text-rose-500" : "text-slate-400 hover:text-rose-500"
           }`}
           aria-label="Toggle Wishlist"
         >
-          <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
+          <Heart size={18} fill={isWishlisted ? "currentColor" : "none"} />
         </button>
 
         {imagesList.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/30 px-2 py-1 rounded-full backdrop-blur-xs">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/40 px-2.5 py-1 rounded-full backdrop-blur-xs">
             {imagesList.map((_, index) => (
               <button
                 key={index}
@@ -149,8 +149,8 @@ const Card = ({ product }) => {
                   e.stopPropagation();
                   setCurrentIndex(index);
                 }}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  currentIndex === index ? "bg-emerald-500 w-4" : "bg-white/60"
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  currentIndex === index ? "bg-white w-3" : "bg-white/50"
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -162,56 +162,63 @@ const Card = ({ product }) => {
       {/* Content Section */}
       <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between gap-3">
         <div>
+          {/* Category Chip */}
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              {product.category || "Finora Brand"}
+            </span>
+            <div className="flex items-center gap-1 text-xs text-amber-500 font-bold">
+              <Star size={13} className="fill-current text-amber-400" />
+              <span>{product.rating || "4.8"}</span>
+              <span className="text-slate-400 font-normal text-[11px]">({product.reviews || "12"})</span>
+            </div>
+          </div>
+
           <Link href={`/Pages/Details/${product.id}`}>
-            <h3 className="font-bold text-sm sm:text-base leading-5 text-gray-800 line-clamp-2 hover:text-emerald-600 transition-colors min-h-10">
+            <h3 className="font-bold text-sm sm:text-base leading-snug text-slate-900 line-clamp-2 hover:text-emerald-600 transition-colors min-h-10">
               {product.title}
             </h3>
           </Link>
 
-          <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-2">
-            <div className="flex items-center gap-0.5 text-amber-400 font-medium">
-              <Star size={14} className="fill-current text-amber-400" />
-              <span>{product.rating}</span>
-            </div>
-            <span>({product.reviews})</span>
-            <span>|</span>
-            <span>{product.sold}</span>
-          </div>
-
-          <div className="flex items-baseline gap-2 mt-2.5">
-            <span className="text-lg font-bold text-emerald-600">
+          <div className="flex items-baseline gap-2 mt-3">
+            <span className="text-lg font-black text-emerald-600">
               ৳{product.price}
             </span>
             {product.oldPrice && (
-              <span className="line-through text-xs text-gray-400">
+              <span className="line-through text-xs text-slate-400 font-medium">
                 ৳{product.oldPrice}
+              </span>
+            )}
+            {product.discount && (
+              <span className="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">
+                SAVE
               </span>
             )}
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-2 border-t border-gray-100">
+        <div className="flex gap-2 pt-2.5 border-t border-slate-100">
           <button
             onClick={handleAddToCart}
-            className="w-11 h-10 rounded-xl border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 duration-200 cursor-pointer"
+            className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 active:scale-95 duration-200 cursor-pointer shrink-0"
             title="Add to Cart"
             aria-label="Add to cart"
           >
-            <ShoppingCart size={18} />
+            <ShoppingCart size={17} />
           </button>
 
           <button
             onClick={handleBuyNow}
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold duration-200 cursor-pointer shadow-xs"
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-bold duration-200 cursor-pointer shadow-xs hover:shadow-md"
           >
-            <ShoppingBag size={16} />
+            <ShoppingBag size={15} />
             <span>Buy Now</span>
           </button>
 
           <Link
             href={`/Pages/Details/${product.id}`}
-            className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-700 duration-200"
+            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center text-slate-700 duration-200 shrink-0"
             title="View Details"
             aria-label="View Details"
           >

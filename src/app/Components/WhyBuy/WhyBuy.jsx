@@ -28,41 +28,43 @@ const features = [
 
 const WhyBuy = () => {
   return (
-    <section className="pb-15 bg-white">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="py-16 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Heading */}
-        <div className="text-center mb-14">
-          <h2 className="text-5xl font-bold text-[#111827]">
-            Why buy from us?
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200">
+            Confidence & Care
+          </span>
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mt-2 tracking-tight">
+            Why Buy From Finora?
           </h2>
-
-          <p className="mt-4 text-xl text-gray-500">
-            Trusted by 50,000+ customers across Bangladesh
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">
+            Delivering quality, speed, and peace of mind with every package
           </p>
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((item, index) => {
             const Icon = item.icon;
 
             return (
               <div
                 key={index}
-                className="border border-gray-200 rounded-[28px] py-10 px-8 flex flex-col items-center text-center hover:shadow-lg transition-all duration-300"
+                className="bg-slate-50/60 border border-slate-200/80 rounded-3xl p-6 flex flex-col items-center text-center hover:bg-white hover:border-emerald-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
               >
                 {/* Icon */}
-                <div className="w-20 h-20 rounded-3xl bg-[#EAF8F4] flex items-center justify-center mb-8">
-                  <Icon size={38} className="text-[#18B779]" strokeWidth={2} />
+                <div className="w-14 h-14 rounded-2xl bg-emerald-100/70 group-hover:bg-emerald-500 group-hover:text-white text-emerald-600 flex items-center justify-center mb-5 transition-colors shadow-2xs">
+                  <Icon size={26} strokeWidth={2.2} />
                 </div>
 
                 {/* Title */}
-                <h3 className="text-[22px] font-bold text-[#111827]">
+                <h3 className="text-base font-bold text-slate-900">
                   {item.title}
                 </h3>
 
                 {/* Description */}
-                <p className="mt-4 text-[18px] leading-8 text-gray-500">
+                <p className="mt-2 text-xs sm:text-sm leading-relaxed text-slate-500">
                   {item.description}
                 </p>
               </div>

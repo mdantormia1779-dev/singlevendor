@@ -272,13 +272,39 @@ const Navbar = () => {
   return (
     <>
       {/* Main Header Container */}
-      <header className="fixed top-0 left-0 w-full z-50 bg-white">
+      <header className="sticky top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md shadow-xs transition-all">
+        {/* Top Announcement & Utility Bar */}
+        <div className="bg-slate-900 text-slate-300 text-[11px] sm:text-xs py-1.5 px-4 border-b border-slate-800 hidden sm:block">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <span className="inline-flex items-center gap-1.5 font-medium">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-white font-semibold">Special Offer:</span>
+                <span>Free Express Delivery Nationwide on orders over ৳1,000!</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-5 text-slate-400 text-xs">
+              <Link href="/Pages/OrderTracking" className="hover:text-emerald-400 transition-colors flex items-center gap-1">
+                <Truck size={13} />
+                <span>Track Order</span>
+              </Link>
+              <span>•</span>
+              <span className="flex items-center gap-1 hover:text-emerald-400 transition-colors">
+                <span>Hotline:</span>
+                <span className="font-semibold text-white">+880 1700-FINORA</span>
+              </span>
+              <span>•</span>
+              <span className="text-slate-300 font-medium">🇧🇩 BDT (৳)</span>
+            </div>
+          </div>
+        </div>
+
         {/* Top Navbar */}
-        <div className="border-b border-gray-100 bg-white">
-          <div className="container mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-4">
+        <div className="border-b border-slate-100/80 bg-white/90 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 shrink-0">
-              <div className="w-10 h-10 rounded-2xl bg-[#19b77a] flex items-center justify-center shadow-md shadow-emerald-100">
+            <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
                 <Image
                   src={logo}
                   alt="Finora Logo"
@@ -288,8 +314,8 @@ const Navbar = () => {
                   className="brightness-0 invert"
                 />
               </div>
-              <span className="text-2xl font-black tracking-tight text-gray-900 hidden sm:inline">
-                Finora<span className="text-[#19b77a]">.</span>
+              <span className="text-2xl font-black tracking-tight text-slate-900 hidden sm:inline">
+                Finora<span className="text-emerald-500">.</span>
               </span>
             </Link>
 
@@ -307,11 +333,11 @@ const Navbar = () => {
                   onFocus={() => {
                     if (searchQuery.trim()) setShowSuggestions(true);
                   }}
-                  className="w-full pl-11 pr-24 py-2.5 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:border-[#19b77a] focus:bg-white text-sm transition-all shadow-2xs"
+                  className="w-full pl-11 pr-24 py-2.5 rounded-full bg-slate-50 border border-slate-200/80 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 text-sm transition-all shadow-xs"
                 />
                 <Search
                   size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 />
                 {searchQuery && (
                   <button
@@ -321,7 +347,7 @@ const Navbar = () => {
                       setSuggestions([]);
                       setShowSuggestions(false);
                     }}
-                    className="absolute right-20 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                    className="absolute right-20 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
                     title="Clear search"
                   >
                     <X size={14} />
@@ -329,7 +355,7 @@ const Navbar = () => {
                 )}
                 <button
                   type="submit"
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-[#19b77a] hover:bg-[#159e68] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
                   Search
                 </button>
@@ -338,7 +364,7 @@ const Navbar = () => {
             </div>
 
             {/* Right Action Icons */}
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Wishlist */}
               <Link href="/Dashboard/user/Wishlist">
                 <div className="relative cursor-pointer p-1">
@@ -519,15 +545,15 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Desktop Bottom Navbar (Green category bar) */}
+        {/* Desktop Bottom Navbar (Refined category bar) */}
         <div
-          className={`hidden lg:block overflow-hidden bg-[#19b77a] shadow-md transition-[max-height,opacity,transform] duration-400 ease-in-out ${
+          className={`hidden lg:block overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 shadow-sm transition-[max-height,opacity,transform] duration-300 ease-in-out ${
             isBottomVisible
-              ? "max-h-20 opacity-100 translate-y-0"
+              ? "max-h-16 opacity-100 translate-y-0"
               : "max-h-0 opacity-0 -translate-y-3"
           }`}
         >
-          <div className="max-w-7xl mx-auto h-14 px-6 flex items-center gap-8 text-white font-medium text-base">
+          <div className="max-w-7xl mx-auto h-12 px-4 sm:px-6 flex items-center text-white font-medium">
             <NavMenu />
           </div>
         </div>

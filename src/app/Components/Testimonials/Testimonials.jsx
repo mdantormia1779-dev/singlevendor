@@ -36,69 +36,76 @@ const reviews = [
 
 export default function Testimonials() {
   return (
-    <section className="pb-15 bg-white">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="py-16 bg-slate-50/70 border-t border-slate-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        {/* Section Header */}
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200">
+            Real Experiences
+          </span>
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mt-2 tracking-tight">
+            Loved by 50,000+ Happy Shoppers
+          </h2>
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">
+            Real reviews and verified purchases from customers nationwide
+          </p>
+        </div>
 
-        <div className="flex gap-8 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth snap-x snap-mandatory pb-4">
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {reviews.map((item) => (
             <div
               key={item.id}
-              className="min-w-[380px] max-w-[380px] snap-start flex-shrink-0 bg-white border border-gray-200 rounded-[28px] p-6 hover:shadow-lg duration-300"
+              className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-7 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
             >
-              {/* Rating */}
-              <div className="flex gap-1 mb-5">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    size={16}
-                    className={
-                      star <= item.rating
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300"
-                    }
-                  />
-                ))}
+              <div>
+                {/* Rating & Verified Badge */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        size={15}
+                        className={
+                          star <= item.rating
+                            ? "fill-amber-400 text-amber-400"
+                            : "text-slate-200"
+                        }
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/70">
+                    Verified Buyer ✓
+                  </span>
+                </div>
+
+                {/* Review */}
+                <p className="text-sm text-slate-600 leading-relaxed italic">
+                  &ldquo;{item.review}&rdquo;
+                </p>
               </div>
 
-              {/* Review */}
-              <p className="text-[16px] text-gray-700 leading-8 h-[95px]">
-                &quot;{item.review}&quot;
-              </p>
-
-              {/* User */}
-              <div className="flex items-center gap-4 mt-7">
+              {/* User Info */}
+              <div className="flex items-center gap-3.5 mt-6 pt-5 border-t border-slate-100">
                 <Image
                   src={item.image}
                   alt={item.name}
                   width={44}
                   height={44}
-                  className="rounded-full object-cover w-11 h-11"
+                  className="rounded-full object-cover w-11 h-11 ring-2 ring-emerald-500/20"
                 />
 
                 <div>
-                  <h3 className="text-[24px] font-semibold text-gray-900">
+                  <h3 className="text-sm font-bold text-slate-900">
                     {item.name}
                   </h3>
-
-                  <p className="text-gray-400 text-[18px]">
-                    {item.city}
+                  <p className="text-slate-400 text-xs font-medium">
+                    {item.city}, Bangladesh
                   </p>
                 </div>
               </div>
             </div>
           ))}
-
         </div>
-
-        {/* Dots */}
-        <div className="flex justify-center items-center gap-4 mt-8">
-          <span className="w-3 h-3 rounded-full bg-[#19b77a]"></span>
-          <span className="w-3 h-3 rounded-full border border-[#19b77a]"></span>
-          <span className="w-3 h-3 rounded-full border border-[#19b77a]"></span>
-          <span className="w-3 h-3 rounded-full border border-[#19b77a]"></span>
-        </div>
-
       </div>
     </section>
   );
