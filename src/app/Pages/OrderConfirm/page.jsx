@@ -223,7 +223,7 @@ const OrderConfirmPage = () => {
     return true;
   };
 
-  const handleConfirmOrder = () => {
+  const handleConfirmOrder = async () => {
     if (!requireAuth("Please login to confirm and place your order!", "/Pages/OrderConfirm")) {
       return;
     }
