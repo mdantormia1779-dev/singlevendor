@@ -5,23 +5,44 @@ import { Package, Search, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
+import { useSelector } from "react-redux";
+
 const TrackOrder = () => {
   const [searchInput, setSearchInput] = useState("");
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
 
+  const authUser = useSelector((state) => state.auth?.user);
+
   useEffect(() => {
-    fetch("/api/orders?limit=1")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.orders && data.orders.length > 0) {
-          setOrder(data.orders[0]);
-        }
-      })
-      .catch((err) => console.error("Track order initial fetch error:", err))
-      .finally(() => setLoading(false));
-  }, []);
+    if (authUser?.id || authUser?.phone || authUser?.email) {
+      const params = new URLSearchParams();
+      if (authUser.id) params.set("userId", authUser.id);
+      if (authUser.phone) params.set("phone", authUser.phone);
+      if (authUser.email) params.set("email", authUser.email);
+      params.set("limit", "1");
+
+      fetch(`/api/orders?${params.toString()}`)
+        .then((res) => {
+          if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
+            return null;
+          }
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.success && data.orders && data.orders.length > 0) {
+            setOrder(data.orders[0]);
+          } else {
+            setOrder(null);
+          }
+        })
+        .catch((err) => console.error("Track order initial fetch error:", err))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [authUser?.id, authUser?.phone, authUser?.email]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -31,18 +52,24 @@ const TrackOrder = () => {
     try {
       const clean = searchInput.trim().replace(/^#/, "");
       const res = await fetch(`/api/orders/${encodeURIComponent(clean)}`);
-      const data = await res.json();
-      if (data.success && data.order) {
-        setOrder(data.order);
-      } else {
-        const searchRes = await fetch(`/api/orders?search=${encodeURIComponent(clean)}`);
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
+        const data = await res.json();
+        if (data.success && data.order) {
+          setOrder(data.order);
+          return;
+        }
+      }
+
+      const searchRes = await fetch(`/api/orders?search=${encodeURIComponent(clean)}`);
+      if (searchRes.ok && searchRes.headers.get("content-type")?.includes("application/json")) {
         const searchData = await searchRes.json();
         if (searchData.success && searchData.orders && searchData.orders.length > 0) {
           setOrder(searchData.orders[0]);
-        } else {
-          setOrder(null);
+          return;
         }
       }
+
+      setOrder(null);
     } catch (err) {
       console.error("Search error:", err);
     } finally {

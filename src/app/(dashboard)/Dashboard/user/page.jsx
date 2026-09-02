@@ -12,27 +12,59 @@ export default function DashboardHomePage() {
   const authUser = useSelector((state) => state.auth?.user);
   const wishlistItems = useSelector((state) => state.wishlist?.items) || [];
   const rawOrders = useSelector((state) => state.cart?.orders);
-  const reduxOrders = useMemo(() => rawOrders || [], [rawOrders]);
+  const reduxOrders = useMemo(() => {
+    if (!rawOrders || !authUser) return [];
+    return rawOrders.filter((o) => {
+      const cleanTargetPhone = authUser.phone ? authUser.phone.replace(/[^\d]/g, "").slice(-11) : "";
+      const orderPhone = o.customer?.phone ? o.customer.phone.replace(/[^\d]/g, "").slice(-11) : "";
+
+      if (o.userId && authUser.id && o.userId === authUser.id) return true;
+      if (cleanTargetPhone && orderPhone && cleanTargetPhone === orderPhone) return true;
+      if (authUser.email && o.customer?.email && authUser.email.toLowerCase() === o.customer.email.toLowerCase()) return true;
+      return false;
+    });
+  }, [rawOrders, authUser]);
 
   const [dbOrders, setDbOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const userName = authUser?.name || "Customer";
 
-  // Fetch real orders from Prisma API
+  // Fetch real orders from Prisma API for the current user
   useEffect(() => {
     dispatch(loadStoredOrders());
 
-    fetch("/api/orders")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.orders) {
-          setDbOrders(data.orders);
-        }
-      })
-      .catch((err) => console.error("Dashboard orders fetch error:", err))
-      .finally(() => setLoading(false));
-  }, [dispatch]);
+    const activeId = authUser?.id;
+    const activePhone = authUser?.phone;
+    const activeEmail = authUser?.email;
+
+    if (activeId || activePhone || activeEmail) {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (activeId) params.set("userId", activeId);
+      if (activePhone) params.set("phone", activePhone);
+      if (activeEmail) params.set("email", activeEmail);
+
+      fetch(`/api/orders?${params.toString()}`)
+        .then((res) => {
+          if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
+            return null;
+          }
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.success && data.orders) {
+            setDbOrders(data.orders);
+          } else {
+            setDbOrders([]);
+          }
+        })
+        .catch((err) => console.error("Dashboard orders fetch error:", err))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [dispatch, authUser?.id, authUser?.phone, authUser?.email]);
 
   const activeOrdersList = dbOrders.length > 0 ? dbOrders : reduxOrders;
 

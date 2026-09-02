@@ -8,6 +8,7 @@ import { loadStoredOrders, updateOrderStatus, deleteOrder } from "@/app/store/ca
 import { Truck, ArrowRight, ShoppingBag, XCircle, AlertTriangle, Loader2, X, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import gsap from "gsap";
+import { useAuthGuard } from "@/lib/useAuthGuard";
 
 const CANCEL_REASONS = [
   "Ordered by mistake / wrong items",
@@ -20,8 +21,23 @@ const CANCEL_REASONS = [
 
 const MyOrders = () => {
   const dispatch = useDispatch();
+  const { requireAuth, user: guardUser } = useAuthGuard();
+  const authUser = useSelector((state) => state.auth?.user) || guardUser;
   const rawOrders = useSelector((state) => state.cart.orders);
-  const reduxOrders = useMemo(() => rawOrders || [], [rawOrders]);
+
+  // Strictly filter Redux orders to only those belonging to the logged-in user
+  const reduxOrders = useMemo(() => {
+    if (!rawOrders || !authUser) return [];
+    return rawOrders.filter((o) => {
+      const cleanTargetPhone = authUser.phone ? authUser.phone.replace(/[^\d]/g, "").slice(-11) : "";
+      const orderPhone = o.customer?.phone ? o.customer.phone.replace(/[^\d]/g, "").slice(-11) : "";
+
+      if (o.userId && authUser.id && o.userId === authUser.id) return true;
+      if (cleanTargetPhone && orderPhone && cleanTargetPhone === orderPhone) return true;
+      if (authUser.email && o.customer?.email && authUser.email.toLowerCase() === o.customer.email.toLowerCase()) return true;
+      return false;
+    });
+  }, [rawOrders, authUser]);
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,18 +51,43 @@ const MyOrders = () => {
   const ordersContainerRef = useRef(null);
 
   useEffect(() => {
+    if (!requireAuth("Please login to view your orders", "/Dashboard/user/Orders")) {
+      return;
+    }
+
     dispatch(loadStoredOrders());
 
-    fetch("/api/orders")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.orders) {
-          setOrders(data.orders);
-        }
-      })
-      .catch((err) => console.error("Orders fetch error:", err))
-      .finally(() => setLoading(false));
-  }, [dispatch]);
+    const activeId = authUser?.id;
+    const activePhone = authUser?.phone;
+    const activeEmail = authUser?.email;
+
+    if (activeId || activePhone || activeEmail) {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (activeId) params.set("userId", activeId);
+      if (activePhone) params.set("phone", activePhone);
+      if (activeEmail) params.set("email", activeEmail);
+
+      fetch(`/api/orders?${params.toString()}`)
+        .then((res) => {
+          if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
+            return null;
+          }
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.success && data.orders) {
+            setOrders(data.orders);
+          } else {
+            setOrders([]);
+          }
+        })
+        .catch((err) => console.error("Orders fetch error:", err))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [dispatch, authUser?.id, authUser?.phone, authUser?.email, requireAuth]);
 
   useEffect(() => {
     if (!loading && ordersContainerRef.current && ordersContainerRef.current.children.length > 0) {
