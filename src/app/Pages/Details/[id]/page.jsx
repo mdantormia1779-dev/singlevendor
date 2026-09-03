@@ -318,7 +318,12 @@ const DetailsPage = () => {
 
       {/* Tabs & Product Details */}
       <div className="mt-14">
-        <Deteals product={product} />
+        <Deteals
+          product={product}
+          onStatsUpdate={({ rating, reviews }) => {
+            setProduct((prev) => (prev ? { ...prev, rating, reviews } : prev));
+          }}
+        />
       </div>
     </div>
   );

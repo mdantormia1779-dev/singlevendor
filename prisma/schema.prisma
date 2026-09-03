@@ -22,6 +22,8 @@ model User {
   sessions      Session[]
   accounts      Account[]
   orders        Order[]
+  reviews       Review[]
+  questions     Question[]
 }
 
 model Session {
@@ -94,6 +96,8 @@ model Product {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   orderItems     OrderItem[]
+  reviewsList    Review[]
+  questionsList  Question[]
 }
 
 model Order {
@@ -141,3 +145,41 @@ model StoreSetting {
   expressDeliveryFee  Float    @default(120)
   updatedAt           DateTime @updatedAt
 }
+
+model Review {
+  id         String   @id @default(cuid())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName   String
+  userAvatar String?
+  userEmail  String?
+  rating     Int      @default(5)
+  comment    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([productId])
+  @@index([userId])
+}
+
+model Question {
+  id         String    @id @default(cuid())
+  productId  Int
+  product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName   String
+  userAvatar String?
+  question   String
+  answer     String?
+  answeredAt DateTime?
+  answeredBy String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([productId])
+  @@index([userId])
+}
+
