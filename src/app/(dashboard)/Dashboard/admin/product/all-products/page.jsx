@@ -3,13 +3,14 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Plus, Lightbulb, Trash2, Edit2, Eye, AlertTriangle, RefreshCw } from "lucide-react";
+import { Search, Plus, Lightbulb, Trash2, Edit2, Eye, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import gsap from "gsap";
 
 export default function AllProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -78,6 +79,7 @@ export default function AllProductsPage() {
 
   const handleDelete = async () => {
     if (!productToDelete) return;
+    setIsDeleting(true);
 
     try {
       const res = await fetch(`/api/products/${productToDelete.id}`, {
@@ -86,15 +88,16 @@ export default function AllProductsPage() {
       const data = await res.json();
       if (data.success) {
         setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id));
-        toast.success(`Product "${productToDelete.title}" deleted.`);
+        toast.success(`Product "${productToDelete.title}" deleted successfully! 🗑️`);
+        setProductToDelete(null);
       } else {
-        toast.error("Failed to delete product from database.");
+        toast.error(data.error || "Failed to delete product from database.");
       }
     } catch (err) {
       console.error("Delete product error:", err);
       toast.error("Network error deleting product.");
     } finally {
-      setProductToDelete(null);
+      setIsDeleting(false);
     }
   };
 
@@ -288,16 +291,21 @@ export default function AllProductsPage() {
             </p>
             <div className="flex gap-3">
               <button
+                type="button"
+                disabled={isDeleting}
                 onClick={() => setProductToDelete(null)}
-                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-slate-700 cursor-pointer text-sm"
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-slate-700 cursor-pointer text-sm disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
+                type="button"
+                disabled={isDeleting}
                 onClick={handleDelete}
-                className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold cursor-pointer text-sm"
+                className="flex-1 py-3 bg-red-500 hover:bg-red-600 active:scale-95 text-white rounded-xl font-bold cursor-pointer text-sm flex items-center justify-center gap-1.5 disabled:opacity-50"
               >
-                Delete
+                {isDeleting && <Loader2 size={16} className="animate-spin" />}
+                <span>{isDeleting ? "Deleting..." : "Delete"}</span>
               </button>
             </div>
           </div>

@@ -1,23 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
-import { UploadCloud, Check, Loader2, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import Link from "next/link";
+import ProductImageUploader from "@/components/ProductImageUploader";
 
 const colorsList = [
   { name: "Orange", class: "bg-orange-500" },
   { name: "Blue", class: "bg-blue-500" },
   { name: "Yellow", class: "bg-amber-400" },
   { name: "Black", class: "bg-black" },
+  { name: "White", class: "bg-white border border-gray-300" },
+  { name: "Emerald", class: "bg-emerald-500" },
 ];
 
-const sizesList = ["S", "M", "L", "XL", "XXL"];
+const sizesList = ["S", "M", "L", "XL", "XXL", "Free Size"];
 
 export default function AddProductPage() {
   const router = useRouter();
+
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -28,7 +33,7 @@ export default function AddProductPage() {
   const [brand, setBrand] = useState("");
   const [quantity, setQuantity] = useState("50");
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [images, setImages] = useState([]);
   const [selectedColor, setSelectedColor] = useState("Orange");
   const [selectedSize, setSelectedSize] = useState("M");
 
@@ -55,6 +60,10 @@ export default function AddProductPage() {
       errs.description = "Product description is required.";
     }
 
+    if (images.length === 0) {
+      errs.images = "Please upload or add at least one product photo.";
+    }
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -69,9 +78,9 @@ export default function AddProductPage() {
 
     setIsLoading(true);
 
-    const defaultImg =
-      imageUrl.trim() ||
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80";
+    const finalImages = images.length > 0
+      ? images
+      : ["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80"];
 
     try {
       const res = await fetch("/api/products", {
@@ -85,7 +94,7 @@ export default function AddProductPage() {
           discount: discount || (salePrice ? "Sale" : null),
           stockCount: parseInt(quantity) || 50,
           description: description.trim(),
-          images: [defaultImg],
+          images: finalImages,
           features: [
             `Brand: ${brand || "Finora"}`,
             `Color: ${selectedColor}`,
@@ -97,7 +106,7 @@ export default function AddProductPage() {
 
       const data = await res.json();
       if (data.success) {
-        toast.success(`Product "${title}" saved to database successfully! 🎉`);
+        toast.success(`Product "${title}" created and published successfully! 🎉`);
         router.push("/Dashboard/admin/product/all-products");
       } else {
         toast.error(data.error || "Failed to save product in database.");
@@ -112,13 +121,13 @@ export default function AddProductPage() {
 
   return (
     <div className="p-4 sm:p-8 bg-gray-50 min-h-screen font-sans">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
             Add New Product
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Create and list a new item in your PostgreSQL database catalog
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            Create, upload photos, and list a new item in your store database
           </p>
         </div>
         <Link
@@ -131,7 +140,7 @@ export default function AddProductPage() {
 
       <form
         onSubmit={handleSave}
-        className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 space-y-6 max-w-4xl"
+        className="bg-white p-6 sm:p-8 rounded-3xl shadow-xs border border-gray-100 space-y-6 max-w-4xl"
       >
         {/* Product Title */}
         <div>
@@ -140,7 +149,7 @@ export default function AddProductPage() {
           </label>
           <input
             type="text"
-            placeholder="e.g. Wool oversized knitted T-shirt"
+            placeholder="e.g. Premium Cotton Casual Shirt for Men"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className={`w-full bg-gray-50 border rounded-2xl px-4 py-3 text-gray-900 text-sm focus:outline-none focus:border-emerald-500 ${
@@ -227,40 +236,34 @@ export default function AddProductPage() {
           </div>
         </div>
 
-        {/* Image URL & Discount Tag */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block mb-1.5">
-              Product Image URL
-            </label>
-            <input
-              type="text"
-              placeholder="https://images.unsplash.com/photo-..."
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 text-sm focus:outline-none focus:border-emerald-500"
-            />
-          </div>
+        {/* Photo Upload Section */}
+        <ProductImageUploader
+          images={images}
+          setImages={setImages}
+          error={errors.images}
+          folder="products"
+          onUploadingChange={setIsUploading}
+        />
 
-          <div>
-            <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block mb-1.5">
-              Discount Badge (e.g. 15% OFF)
-            </label>
-            <input
-              type="text"
-              placeholder="15% OFF"
-              value={discount}
-              onChange={(e) => setDiscount(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 text-sm focus:outline-none focus:border-emerald-500"
-            />
-          </div>
+        {/* Discount Tag */}
+        <div>
+          <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block mb-1.5">
+            Discount Badge (e.g. 15% OFF, HOT, NEW)
+          </label>
+          <input
+            type="text"
+            placeholder="15% OFF"
+            value={discount}
+            onChange={(e) => setDiscount(e.target.value)}
+            className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 text-sm focus:outline-none focus:border-emerald-500"
+          />
         </div>
 
         {/* Color and Size */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block mb-2">
-              Color: <span className="text-slate-500">{selectedColor}</span>
+              Color Variant: <span className="text-slate-500">{selectedColor}</span>
             </label>
             <div className="flex items-center gap-3">
               {colorsList.map((color) => (
@@ -269,10 +272,11 @@ export default function AddProductPage() {
                   type="button"
                   onClick={() => setSelectedColor(color.name)}
                   className={`w-8 h-8 rounded-full ${color.class} flex items-center justify-center transition cursor-pointer ${
-                    selectedColor === color.name ? "ring-2 ring-emerald-500 scale-110" : "hover:scale-105"
+                    selectedColor === color.name ? "ring-2 ring-emerald-500 scale-110 shadow-xs" : "hover:scale-105"
                   }`}
+                  title={color.name}
                 >
-                  {selectedColor === color.name && <Check size={14} className="text-white" />}
+                  {selectedColor === color.name && <Check size={14} className={color.name === "White" ? "text-slate-900" : "text-white"} />}
                 </button>
               ))}
             </div>
@@ -280,7 +284,7 @@ export default function AddProductPage() {
 
           <div>
             <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block mb-2">
-              Size: <span className="text-slate-500">{selectedSize}</span>
+              Size Variant: <span className="text-slate-500">{selectedSize}</span>
             </label>
             <div className="flex flex-wrap gap-2">
               {sizesList.map((size) => (
@@ -288,7 +292,7 @@ export default function AddProductPage() {
                   key={size}
                   type="button"
                   onClick={() => setSelectedSize(size)}
-                  className={`w-10 h-9 rounded-xl text-xs font-bold transition border cursor-pointer ${
+                  className={`w-auto px-3 h-9 rounded-xl text-xs font-bold transition border cursor-pointer ${
                     selectedSize === size
                       ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
                       : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
@@ -322,8 +326,8 @@ export default function AddProductPage() {
         <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
           <button
             type="submit"
-            disabled={isLoading}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3.5 rounded-2xl shadow-sm transition text-xs sm:text-sm cursor-pointer flex items-center gap-2"
+            disabled={isLoading || isUploading}
+            className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-8 py-3.5 rounded-2xl shadow-sm transition text-xs sm:text-sm cursor-pointer flex items-center gap-2"
           >
             {isLoading && <Loader2 className="animate-spin" size={16} />}
             <span>{isLoading ? "Saving to Database..." : "Save & Publish Product"}</span>
