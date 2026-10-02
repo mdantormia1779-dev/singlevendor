@@ -111,13 +111,19 @@ export default function RegistrationPage() {
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
     try {
-      if (signIn?.social) {
-        await signIn.social({
-          provider: "google",
-          callbackURL: "/Dashboard/user",
-        });
-      } else {
-        window.location.href = "/api/auth/sign-in/social?provider=google&callbackURL=/Dashboard/user";
+      const res = await signIn.social({
+        provider: "google",
+        callbackURL: "/Dashboard/user",
+      });
+
+      if (res?.data?.url) {
+        window.location.href = res.data.url;
+        return;
+      }
+
+      if (res?.error) {
+        toast.error(res.error.message || "Google sign-up failed");
+        setIsGoogleLoading(false);
       }
     } catch (err) {
       console.error("Google registration error:", err);

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { loginSuccess } from "@/app/store/authSlice";
 import { signIn } from "@/lib/auth-client";
 import { useForm } from "react-hook-form";
@@ -18,21 +18,29 @@ import {
   EyeOff,
   ArrowRight,
   Sparkles,
+  ShieldCheck,
+  User,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
-// Validation Schema for Email & Password
+// Validation Schema for Email & Password (allows valid email or 'admin')
 const emailSchema = yup.object().shape({
   email: yup
     .string()
-    .email("Please enter a valid email address")
+    .test("email-or-admin", "Please enter a valid email address", (val) => {
+      if (!val) return false;
+      const trimmed = val.trim().toLowerCase();
+      if (trimmed === "admin") return true;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+    })
     .required("Email is required"),
   password: yup
     .string()
-    .min(6, "Password must be at least 6 characters")
+    .min(4, "Password must be at least 4 characters")
     .required("Password is required"),
 });
 
@@ -41,12 +49,13 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect");
   const dispatch = useDispatch();
+  const authUser = useSelector((state) => state.auth?.user);
+  const isAuthenticated = useSelector((state) => state.auth?.isAuthenticated);
   const cardRef = useRef(null);
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
 
   const {
     register,
@@ -68,7 +77,13 @@ function LoginContent() {
     }
   }, []);
 
-  // 1. Submit Email & Password (Prisma PostgreSQL Database)
+  // Quick fill helper for demo accounts
+  const handleQuickFill = (email, password) => {
+    setValue("email", email, { shouldValidate: true });
+    setValue("password", password, { shouldValidate: true });
+  };
+
+  // 1. Submit Email & Password (Prisma Database)
   const onEmailSubmit = async (data) => {
     setIsLoading(true);
     try {
@@ -106,13 +121,19 @@ function LoginContent() {
     const targetCallback = redirectUrl && redirectUrl.startsWith("/") ? redirectUrl : "/Dashboard/user";
 
     try {
-      if (signIn?.social) {
-        await signIn.social({
-          provider: "google",
-          callbackURL: targetCallback,
-        });
-      } else {
-        window.location.assign(`/api/auth/sign-in/social?provider=google&callbackURL=${encodeURIComponent(targetCallback)}`);
+      const res = await signIn.social({
+        provider: "google",
+        callbackURL: targetCallback,
+      });
+
+      if (res?.data?.url) {
+        window.location.href = res.data.url;
+        return;
+      }
+
+      if (res?.error) {
+        toast.error(res.error.message || "Google sign-in error");
+        setIsGoogleLoading(false);
       }
     } catch (err) {
       console.error("Google login error:", err);
@@ -141,6 +162,33 @@ function LoginContent() {
         </div>
 
         <CardContent className="p-6 sm:p-8 space-y-6">
+          {/* Active Logged In Notice if already signed in */}
+          {isAuthenticated && authUser && (
+            <div className="p-3.5 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="min-w-0">
+                <span className="font-extrabold text-emerald-800 flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-emerald-600" />
+                  Currently signed in:
+                </span>
+                <p className="text-emerald-700 truncate font-semibold mt-0.5">
+                  {authUser.name} ({authUser.email})
+                </p>
+              </div>
+              <Button
+                size="sm"
+                type="button"
+                onClick={() =>
+                  router.push(
+                    authUser.role === "admin" ? "/Dashboard/admin" : "/Dashboard/user"
+                  )
+                }
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shrink-0 cursor-pointer h-8 px-3"
+              >
+                Go to Dashboard
+              </Button>
+            </div>
+          )}
+
           {/* Real Google One-Click OAuth Button */}
           <Button
             type="button"
@@ -252,6 +300,40 @@ function LoginContent() {
               )}
             </Button>
           </form>
+
+          {/* Quick Demo Accounts Helper */}
+          <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                Demo Accounts (One-Click Fill)
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium">Click to populate</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  handleQuickFill("admin@finora.com", "admin123");
+                  toast.info("Admin credentials filled! Click Sign In 👑");
+                }}
+                className="flex items-center justify-center gap-1.5 p-2.5 bg-white hover:bg-orange-50/80 border border-slate-200 hover:border-orange-300 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-700 transition cursor-pointer shadow-2xs"
+              >
+                <ShieldCheck size={14} className="text-orange-500" />
+                <span>Admin Demo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleQuickFill("mdantormia1779@gmail.com", "123456");
+                  toast.info("Customer credentials filled! Click Sign In 👤");
+                }}
+                className="flex items-center justify-center gap-1.5 p-2.5 bg-white hover:bg-emerald-50/80 border border-slate-200 hover:border-emerald-300 rounded-xl text-xs font-bold text-slate-700 hover:text-emerald-700 transition cursor-pointer shadow-2xs"
+              >
+                <User size={14} className="text-emerald-600" />
+                <span>Customer Demo</span>
+              </button>
+            </div>
+          </div>
 
           {/* Registration Link */}
           <div className="text-center pt-2">
